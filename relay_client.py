@@ -27,6 +27,8 @@ import json
 
 #from optparse import OptionParser
 from main_thread import *
+from PyQt4 import QtGui
+from gui import rr_main_gui
 import argparse
 
 def main():
@@ -65,9 +67,16 @@ def main():
     cfg['startup_ts'] = startup_ts
     #print cfg
 
-    main_thread = Main_Thread(cfg)
-    main_thread.daemon = True
-    main_thread.run()
+    #main_thread = Main_Thread(cfg)
+    #main_thread.daemon = True
+    #main_thread.run()
+
+    app = QtGui.QApplication(sys.argv)
+    win = rr_main_gui.MainWindow(cfg['relay']['map'])
+    #win.setCallback(relay)
+    win.show()
+    #server_thread.set_gui_access(ex)
+    sys.exit(app.exec_())
     sys.exit()
 
 

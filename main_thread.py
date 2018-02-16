@@ -13,8 +13,8 @@
 import threading
 import time
 
-from logger import *
-import numato
+#from logger import *
+#import numato
 import service_thread
 
 class Main_Thread(threading.Thread):

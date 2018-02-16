@@ -2,7 +2,7 @@ import logging
 import pika
 import json
 import time
-from sortedcontainers import SortedDict
+#from sortedcontainers import SortedDict
 from brokerconnector import BrokerConnector
 
 class BrokerProducer(BrokerConnector):
