@@ -9,20 +9,42 @@ from datetime import datetime as date
 import sys
 from Relay_QCheckBox import *
 from Relay_QButton import *
+from Relay_Frame import *
 
-class MainWindow(QtGui.QWidget):
+class main_widget(QtGui.QWidget):
+    def __init__(self):
+        super(main_widget, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.grid = QtGui.QGridLayout()
+        #self.setLayout(self.grid)
+
+class MainWindow(QtGui.QMainWindow):
     def __init__(self, cfg):
-        QtGui.QMainWindow.__init__(self)
+        #QtGui.QMainWindow.__init__(self)
+        super(MainWindow, self).__init__()
+        #self.resize(1500, 650)
+        self.setMinimumWidth(300)
+        #self.setMaximumWidth(900)
+        self.setMinimumHeight(300)
+        #self.setMaximumHeight(700)
+        self.setWindowTitle('CFT2 GS Command and Control, v1.0')
+        #self.setContentsMargins(0,0,0,0)
+        self.main_window = main_widget()
+        self.setCentralWidget(self.main_window)
 
         self.cfg = cfg
         #print self.cfg
 
-        self.resize(785, 275)
+        self.resize(300, 500)
         #self.setFixedWidth(785)
         #self.setFixedHeight(275)
-        self.setMinimumWidth(275)
+        #self.setMinimumWidth(275)
         self.setWindowTitle('Relay Control Client v1.0')
         self.setContentsMargins(0,0,0,0)
+
+        self.relay_frames   = []   #list to hold spdt relay check boxes
 
         self.relay_cb   = []   #list to hold spdt relay check boxes
 
@@ -46,13 +68,28 @@ class MainWindow(QtGui.QWidget):
 
     def initUI(self):
         self.initFrames()
-        self.initRelayCheckBoxes()
+        self.initRelayFrames()
+
+        #self.initRelayCheckBoxes()
+
         #self.initSPDTCheckBoxes()
         #self.initDPDTCheckBoxes()
         #self.initADC()
         #self.initNet()
-        self.initControls()
+        #self.initControls()
         #self.connectSignals()
+
+    def initRelayFrames(self):
+        vbox = QtGui.QVBoxLayout()
+
+        for i in range(8):
+            #self.relay_cb.append(Relay_QCheckBox(self, i+1, btn_name, 0, pow(2,i)))
+            self.relay_frames.append(Relay_Frame(self.cfg[i]))
+            #self.relay_cb.append(QtGui.QPushButton(btn_name))
+            #self.relay_cb[i].setCheckable(True)
+            vbox.addWidget(self.relay_frames[i])
+
+        self.relay_fr.setLayout(vbox)
 
     def initRelayCheckBoxes(self):
         vbox = QtGui.QVBoxLayout()
@@ -60,7 +97,7 @@ class MainWindow(QtGui.QWidget):
         for i in range(8):
             btn_name = self.cfg[i]['name']
             #self.relay_cb.append(Relay_QCheckBox(self, i+1, btn_name, 0, pow(2,i)))
-            self.relay_cb.append(Relay_QPushButton(self, i, btn_name, pow(2,i)))
+            self.relay_cb.append(Relay_QPushButton(self, i, "On", pow(2,i)))
             #self.relay_cb.append(QtGui.QPushButton(btn_name))
             #self.relay_cb[i].setCheckable(True)
             vbox.addWidget(self.relay_cb[i])
@@ -80,21 +117,23 @@ class MainWindow(QtGui.QWidget):
         #self.net_fr.setFrameShape(QtGui.QFrame.StyledPanel)
         #self.net_fr.setFixedWidth(200)
 
-        vbox = QtGui.QVBoxLayout()
+        #vbox = QtGui.QVBoxLayout()
         #hbox1 = QtGui.QHBoxLayout()
         #hbox2 = QtGui.QHBoxLayout()
 
         #hbox2.addWidget(self.net_fr)
         #hbox2.addWidget(self.button_fr)
 
-        vbox.addWidget(self.relay_fr)
-        vbox.addWidget(self.button_fr)
+
         #vbox.addLayout(hbox2)
 
         #hbox1.addLayout(vbox)
         #hbox1.addWidget(self.adc_fr)
-
-        self.setLayout(vbox)
+        self.main_grid = QtGui.QGridLayout()
+        self.main_grid.addWidget(self.relay_fr, 0,0,1,1)
+        self.main_grid.addWidget(self.button_fr, 1,0,1,1)
+        self.main_grid.setRowStretch(1,1)
+        self.main_window.setLayout(self.main_grid)
 
     def initControls(self):
         self.updateButton = QtGui.QPushButton("Update")

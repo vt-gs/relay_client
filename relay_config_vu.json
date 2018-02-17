@@ -59,13 +59,13 @@
         },
         {
             "idx":"6",
-            "name":"TX Power Amplifier",
+            "name":"TX AMP",
             "device":"TX_AMP",
             "groups":["VHF","UHF"]
         },
         {
             "idx":"7",
-            "name":"NA",
+            "name":"Relay 7",
             "device":"NA",
             "groups":"NA"
         }
