@@ -28,6 +28,7 @@ class LED(QtGui.QLabel):
         self.setFixedHeight(self.led_size)
         self.setScaledContents(True)
         self.setPixmap(self.pm_off)
+        self.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
 
     def get_pixmaps(self):
         if self.color == 'r':

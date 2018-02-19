@@ -8,6 +8,8 @@ import numpy as np
 from datetime import datetime as date
 import sys
 from LED import *
+from relay_table import *
+
 class main_widget(QtGui.QWidget):
     def __init__(self):
         super(main_widget, self).__init__()
@@ -22,41 +24,21 @@ class MainWindow(QtGui.QMainWindow):
         #QtGui.QMainWindow.__init__(self)
         super(MainWindow, self).__init__()
         #self.resize(1500, 650)
-        self.setMinimumWidth(600)
+        self.setMinimumWidth(475)
         #self.setMaximumWidth(900)
-        self.setMinimumHeight(300)
+        self.setMinimumHeight(525)
         #self.setMaximumHeight(700)
-        self.setWindowTitle('CFT2 GS Command and Control, v1.0')
-        #self.setContentsMargins(0,0,0,0)
-        self.main_window = main_widget()
-        self.setCentralWidget(self.main_window)
-
-        self.cfg = cfg
-        #print self.cfg
-
-        self.resize(300, 500)
-        #self.setFixedWidth(785)
-        #self.setFixedHeight(275)
-        #self.setMinimumWidth(275)
         self.setWindowTitle('Relay Control Client v1.0')
         self.setContentsMargins(0,0,0,0)
+        self.main_window = main_widget()
+        self.setCentralWidget(self.main_window)
+        self.resize(475, 500)
+        self.cfg = cfg
 
-        self.relay_frames   = []   #list to hold spdt relay check boxes
         self.led_frames     = []
         self.relay_cb   = []   #list to hold spdt relay check boxes
-
-        #------these might be old variables we don't need anymore--------
-        self.spdt_cb        = []   #list to hold spdt relay check boxes
-        self.dpdt_cb        = []   #list to hold dpdt relay check boxes
-        self.spdt_a_value   = 0   #SPDT BANK A Value, 0-255
-        self.spdt_b_value   = 0   #SPDT BANK B Value, 0-255
-        self.dpdt_a_value   = 0   #DPDT BANK A Value, 0-255
-        self.dpdt_b_value   = 0   #DPDT BANK B Value, 0-255
-        self.relays_cmd     = 0   # Relay Register Value Commanded, 0-255, [SPDTA, SPDTB, DPDTA, DPDTB]
-        self.relay_callback = None #Callback accessor for remote relay control
-        self.set_relay_msg  = '' # '$,R,AAA,BBB,CCC,DDD'
-        self.connected      = False  #Connection Status to remote relay control box
-        self.adc_interval   = 1000 #ADC Auto Update Interval in milliseconds
+        self.leds = []
+        self.table_led = []
 
         #----Keep these function calls----
         self.initUI()
@@ -67,6 +49,8 @@ class MainWindow(QtGui.QMainWindow):
         self.initFrames()
         #self.initRelayFrames()
         self.initLEDs()
+        #self.initRelayAllFrame()
+        self.initTable()
         self.initNet()
         #self.initRelayCheckBoxes()
 
@@ -76,51 +60,168 @@ class MainWindow(QtGui.QMainWindow):
         #self.initControls()
         #self.connectSignals()
 
+    def initTable(self):
+        self.relay_table=Relay_Table(self.main_window)
+
+        for i in range(8):
+            cb = QtGui.QCheckBox("Relay " + str(i))
+            cb.setStyleSheet("QCheckBox {   font-size:14px; \
+                                            background-color:rgb(0,0,0); \
+                                            color:rgb(255,255,255) ; }")
+            self.relay_cb.append(cb)
+
+            self.table_led.append(LED(i, 20, 'g'))
+            self.relay_table.add_relay(self.cfg['relay']['map'][i], self.table_led[i], self.relay_cb[i])
+            self.relay_cb[i].clicked.connect(self.table_led[i].set_state)
+
+
+        reg_lbl_tx = QtGui.QLabel('TX Register:')
+        reg_lbl_tx.setFixedHeight(20)
+        reg_lbl_tx.setStyleSheet("QLabel {  font-size:14px; \
+                                            font-weight:bold; \
+                                            text-decoration:underline; \
+                                            color:rgb(255,255,255) ; }")
+        reg_lbl_tx.setFixedWidth(85)
+        reg_lbl_tx.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
+        self.rel_reg_lbl_tx = QtGui.QLabel('0x00')
+        self.rel_reg_lbl_tx.setAlignment(QtCore.Qt.AlignCenter)
+        self.rel_reg_lbl_tx.setFixedWidth(100)
+        self.rel_reg_lbl_tx.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,255,255) ; }")
+        self.write_all_btn = QtGui.QPushButton("Write All")
+        vbox_tx = QtGui.QVBoxLayout()
+        vbox_tx.addWidget(reg_lbl_tx)
+        vbox_tx.addWidget(self.rel_reg_lbl_tx)
+        vbox_tx.addWidget(self.write_all_btn)
+
+
+
+
+        #vbox_rx = QtGui.QVBoxLayout()
+        #vbox.addLayout(hbox_reg)
+        #vbox.addLayout(hbox_btn)
+        #hbox = QtGui.QHBoxLayout()
+        #hbox.addWidget(self.relay_table)
+        grid = QtGui.QGridLayout()
+        grid.addWidget(self.relay_table,0,0,2,2)
+        #grid.addLayout(vbox_rx,1,2,1,1)
+
+
+        grid.setSpacing(0)
+        grid.setContentsMargins(0,0,0,0)
+        grid.setRowStretch(0,1)
+        self.table_fr.setLayout(grid)
+
+    def initRelayAllFrame(self):
+        vbox = QtGui.QVBoxLayout()
+        for i in range(8):
+            cb = QtGui.QCheckBox("Relay " + str(i))
+            cb.setStyleSheet("QCheckBox {   font-size:14px; \
+                                            background-color:rgb(0,0,0); \
+                                            color:rgb(255,255,255) ; }")
+            self.relay_cb.append(cb)
+            vbox.addWidget(self.relay_cb[i])
+
+        reg_lbl_tx = QtGui.QLabel('TX Register:')
+        reg_lbl_tx.setFixedHeight(20)
+        reg_lbl_tx.setStyleSheet("QLabel {  font-size:14px; \
+                                            font-weight:bold; \
+                                            text-decoration:underline; \
+                                            color:rgb(255,255,255) ; }")
+        reg_lbl_tx.setFixedWidth(85)
+        reg_lbl_tx.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
+        self.rel_reg_lbl_tx = QtGui.QLabel('0x00')
+        self.rel_reg_lbl_tx.setAlignment(QtCore.Qt.AlignCenter)
+        self.rel_reg_lbl_tx.setFixedWidth(100)
+        self.rel_reg_lbl_tx.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,255,255) ; }")
+        vbox_tx = QtGui.QVBoxLayout()
+        vbox_tx.addWidget(reg_lbl_tx)
+        vbox_tx.addWidget(self.rel_reg_lbl_tx)
+
+        reg_lbl_rx = QtGui.QLabel('RX Register:')
+        reg_lbl_rx.setFixedHeight(20)
+        reg_lbl_rx.setStyleSheet("QLabel {  font-size:14px; \
+                                            font-weight:bold; \
+                                            text-decoration:underline; \
+                                            color:rgb(255,255,255) ; }")
+        reg_lbl_rx.setFixedWidth(85)
+        reg_lbl_rx.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
+        self.rel_reg_lbl_rx = QtGui.QLabel('0x00')
+        self.rel_reg_lbl_rx.setAlignment(QtCore.Qt.AlignCenter)
+        self.rel_reg_lbl_rx.setFixedWidth(100)
+        self.rel_reg_lbl_rx.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,255,255) ; }")
+        vbox_rx = QtGui.QVBoxLayout()
+        vbox_rx.addWidget(reg_lbl_rx)
+        vbox_rx.addWidget(self.rel_reg_lbl_rx)
+
+        hbox_reg = QtGui.QHBoxLayout()
+        hbox_reg.addLayout(vbox_tx)
+        hbox_reg.addLayout(vbox_rx)
+
+        self.read_all_btn = QtGui.QPushButton("Read All")
+        self.write_all_btn = QtGui.QPushButton("Write All")
+        hbox_btn = QtGui.QHBoxLayout()
+        hbox_btn.addWidget(self.write_all_btn)
+        hbox_btn.addWidget(self.read_all_btn)
+
+        vbox.addLayout(hbox_reg)
+        vbox.addLayout(hbox_btn)
+
+        self.relay_all_fr.setLayout(vbox)
+
     def initLEDs(self):
         hbox_led = QtGui.QHBoxLayout()
         hbox_cb = QtGui.QHBoxLayout()
 
-
         colors = ['r', 'a', 'y', 'g', 'b', 'p', 'r', 'a']
-        self.test_cb = []
-        self.leds = []
         for i in range(8):
             #self.relay_cb.append(Relay_QCheckBox(self, i+1, btn_name, 0, pow(2,i)))
             lbl = QtGui.QLabel("Relay "+str(i))
             lbl.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
             lbl.setFixedHeight(20)
-            lbl.setStyleSheet("QLabel {  text-decoration:underline; \
-                                                    font-size:14px; \
-                                                    font-weight:bold; \
-                                                    color:rgb(255,255,255);}")
+            lbl.setStyleSheet("QLabel { text-decoration:underline; \
+                                        font-size:14px; \
+                                        font-weight:bold; \
+                                        color:rgb(255,255,255);}")
 
-
-
-            self.leds.append(LED(i, 60, 'r'))
-            self.test_cb.append(QtGui.QCheckBox(str(i)))
-            self.test_cb[i].clicked.connect(self.leds[i].set_state)
-
+            self.leds.append(LED(i, 50, 'g'))
             vbox = QtGui.QVBoxLayout()
             vbox.addWidget(lbl)
             vbox.addWidget(self.leds[i])
+            self.leds[i].setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
             hbox_led.addLayout(vbox)
-            hbox_cb.addWidget(self.test_cb[i])
+            #hbox_led.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
+            hbox_led.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
 
-        #vbox.addLayout(hbox_led)
-        #vbox.addLayout(hbox_cb)
+        reg_lbl_rx = QtGui.QLabel('RX Register:')
+        reg_lbl_rx.setFixedHeight(20)
+        reg_lbl_rx.setStyleSheet("QLabel {  font-size:14px; \
+                                            font-weight:bold; \
+                                            text-decoration:underline; \
+                                            color:rgb(255,255,255) ; }")
+        reg_lbl_rx.setFixedWidth(85)
+        reg_lbl_rx.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
+        self.rel_reg_lbl_rx = QtGui.QLabel('0x00')
+        self.rel_reg_lbl_rx.setAlignment(QtCore.Qt.AlignCenter)
+        self.rel_reg_lbl_rx.setFixedWidth(100)
+        self.rel_reg_lbl_rx.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,255,255) ; }")
+        self.read_all_btn = QtGui.QPushButton("Read All")
+        vbox_rx = QtGui.QVBoxLayout()
+        vbox_rx.addWidget(reg_lbl_rx)
+        vbox_rx.addWidget(self.rel_reg_lbl_rx)
+        vbox_rx.addWidget(self.read_all_btn)
 
-        #self.relay_fr.setLayout(hbox_led)
-        self.relay_fr.setLayout(hbox_led)
-        self.button_fr.setLayout(hbox_cb)
-
+        #hbox_led.addLayout(vbox_rx)
+        self.led_fr.setLayout(hbox_led)
 
     def initFrames(self):
-        self.relay_fr = QtGui.QFrame(self)
-        self.relay_fr.setFrameShape(QtGui.QFrame.StyledPanel)
-        #self.relay_fr.setFixedWidth(650)
+        self.led_fr = QtGui.QFrame(self)
+        self.led_fr.setFrameShape(QtGui.QFrame.StyledPanel)
 
-        self.button_fr = QtGui.QFrame(self)
-        self.button_fr.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.table_fr = QtGui.QFrame(self)
+        self.table_fr.setFrameShape(QtGui.QFrame.StyledPanel)
+
+        #self.relay_all_fr = QtGui.QFrame(self)
+        #self.relay_all_fr.setFrameShape(QtGui.QFrame.StyledPanel)
 
 
         #self.button_fr.setFixedWidth(445)
@@ -142,19 +243,25 @@ class MainWindow(QtGui.QMainWindow):
         #hbox1.addLayout(vbox)
         #hbox1.addWidget(self.adc_fr)
         self.main_grid = QtGui.QGridLayout()
-        self.main_grid.addWidget(self.relay_fr, 0,0,1,4)
-        self.main_grid.addWidget(self.button_fr, 1,0,1,4)
-        self.main_grid.addWidget(self.net_fr, 2,0,1,2)
-        self.main_grid.setRowStretch(3,1)
+        self.main_grid.addWidget(self.led_fr,       0,0,1,4)
+        self.main_grid.addWidget(self.table_fr,     1,0,1,4)
+        #self.main_grid.addWidget(self.relay_all_fr, 1,2,1,2)
+        self.main_grid.addWidget(self.net_fr,       2,0,1,3)
+        #self.main_grid.setRowStretch(1,2)
+        #self.main_grid.setRowStretch(2,1)
+        self.main_grid.setColumnStretch(3,1)
         self.main_window.setLayout(self.main_grid)
 
     def initNet(self):
         lbl_width = 125
+        le_height = 22
 
         ip_lbl = QtGui.QLabel('RMQ Broker IP:')
         ip_lbl.setFixedWidth(lbl_width)
         ip_lbl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
+        ip_lbl.setFixedHeight(le_height)
         self.ip_le = QtGui.QLineEdit()
+        self.ip_le.setFixedHeight(le_height)
         self.ip_le.setText("192.168.42.11")
         self.ip_le.setInputMask("000.000.000.000;")
         self.ip_le.setEchoMode(QtGui.QLineEdit.Normal)
@@ -164,7 +271,9 @@ class MainWindow(QtGui.QMainWindow):
         port_lbl = QtGui.QLabel('RMQ Broker Port:')
         port_lbl.setFixedWidth(lbl_width)
         port_lbl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
+        port_lbl.setFixedHeight(le_height)
         self.port_le = QtGui.QLineEdit()
+        self.port_le.setFixedHeight(le_height)
         self.port_le.setText(str(self.cfg['broker']['port']))
         self.port_validator = QtGui.QIntValidator()
         self.port_validator.setRange(0,65535)
@@ -177,7 +286,9 @@ class MainWindow(QtGui.QMainWindow):
         user_lbl = QtGui.QLabel('Username:')
         user_lbl.setFixedWidth(lbl_width)
         user_lbl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
+        user_lbl.setFixedHeight(le_height)
         self.user_le = QtGui.QLineEdit()
+        self.user_le.setFixedHeight(le_height)
         self.user_le.setText(self.cfg['broker']['user'])
         self.user_le.setEchoMode(QtGui.QLineEdit.Normal)
         self.user_le.setStyleSheet("QLineEdit {background-color:rgb(255,255,255); color:rgb(0,0,0);}")
@@ -185,7 +296,9 @@ class MainWindow(QtGui.QMainWindow):
         pass_lbl = QtGui.QLabel('Password:')
         pass_lbl.setFixedWidth(lbl_width)
         pass_lbl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
+        pass_lbl.setFixedHeight(le_height)
         self.pass_le = QtGui.QLineEdit()
+        self.pass_le.setFixedHeight(le_height)
         self.pass_le.setText(self.cfg['broker']['pass'])
         self.pass_le.setEchoMode(QtGui.QLineEdit.Normal)
         self.pass_le.setStyleSheet("QLineEdit {background-color:rgb(255,255,255); color:rgb(0,0,0);}")
@@ -193,45 +306,17 @@ class MainWindow(QtGui.QMainWindow):
         stat_lbl = QtGui.QLabel('Status:')
         stat_lbl.setFixedWidth(lbl_width)
         stat_lbl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
+        stat_lbl.setFixedHeight(le_height)
         self.net_stat_lbl = QtGui.QLabel('Disconnected')
-        self.net_stat_lbl.setAlignment(QtCore.Qt.AlignLeft)
+        self.net_stat_lbl.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.net_stat_lbl.setFixedWidth(lbl_width)
+        self.net_stat_lbl.setFixedHeight(le_height)
         self.net_stat_lbl.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,0,0) ; }")
 
         self.connectButton = QtGui.QPushButton("Connect")
 
-
-        # hbox_ip = QtGui.QHBoxLayout()
-        # hbox_ip.addWidget(ip_lbl)
-        # hbox_ip.addWidget(self.ip_le)
-        #
-        # hbox_port = QtGui.QHBoxLayout()
-        # hbox_port.addWidget(port_lbl)
-        # hbox_port.addWidget(self.port_le)
-        #
-        # hbox_user = QtGui.QHBoxLayout()
-        # hbox_user.addWidget(user_lbl)
-        # hbox_user.addWidget(self.user_le)
-        #
-        # hbox_pass = QtGui.QHBoxLayout()
-        # hbox_pass.addWidget(pass_lbl)
-        # hbox_pass.addWidget(self.pass_le)
-        #
-        # hbox_stat = QtGui.QHBoxLayout()
-        # hbox_stat.addWidget(stat_lbl)
-        # hbox_stat.addWidget(self.net_stat_lbl)
-        #
-        #
-        # vbox = QtGui.QVBoxLayout()
-        # vbox.addLayout(hbox_ip)
-        # vbox.addLayout(hbox_port)
-        # vbox.addLayout(hbox_user)
-        # vbox.addLayout(hbox_pass)
-        # vbox.addLayout(hbox_stat)
-        # vbox.addWidget(self.connectButton)
-
         grid =  QtGui.QGridLayout()
-        #r,c,r,c
+        #                           ,r,c,r,c
         grid.addWidget(ip_lbl       ,0,0,1,1)
         grid.addWidget(self.ip_le   ,0,1,1,1)
         grid.addWidget(port_lbl     ,1,0,1,1)
@@ -242,18 +327,16 @@ class MainWindow(QtGui.QMainWindow):
         grid.addWidget(self.pass_le ,3,1,1,1)
         grid.addWidget(stat_lbl     ,4,0,1,1)
         grid.addWidget(self.net_stat_lbl ,4,1,1,1)
-        grid.addWidget(self.connectButton,5,0,1,2)
-
-
-
+        grid.addWidget(self.connectButton,5,1,1,1)
+        grid.setSpacing(2)
         self.net_fr.setLayout(grid)
 
     def updateIPAddress(self):
-        ip_addr = self.ipAddrTextBox.text()
-        self.service_callback.set_ipaddr(ip_addr)
+        ip_addr = self.ip_le.text()
+        self.service_callback.set_ip(ip_addr)
 
     def updatePort(self):
-        port = self.portTextBox.text()
+        port = self.port_le.text()
         self.service_callback.set_port(port)
 
     def initControls(self):
@@ -287,117 +370,6 @@ class MainWindow(QtGui.QMainWindow):
         """
         self.service_callback = cb
 
-    def darken(self):
-        palette = QtGui.QPalette()
-        palette.setColor(QtGui.QPalette.Background,QtCore.Qt.black)
-        palette.setColor(QtGui.QPalette.WindowText,QtCore.Qt.white)
-        palette.setColor(QtGui.QPalette.Text,QtCore.Qt.white)
-        self.setPalette(palette)
-
-    #--------OLD FUNCTIONS---------
-
-    def connectSignals(self):
-        self.resetButton.clicked.connect(self.resetButtonEvent)
-        self.connectButton.clicked.connect(self.connectButtonEvent)
-        #self.adc_auto_cb.stateChanged.connect(self.catchADCAutoEvent)
-        self.readStatusButton.clicked.connect(self.readStatusButtonEvent)
-        self.readRelayButton.clicked.connect(self.readRelayButtonEvent)
-        self.readVoltButton.clicked.connect(self.readVoltButtonEvent)
-        self.updateButton.clicked.connect(self.updateButtonEvent)
-        #QtCore.QObject.connect(self.ADCtimer, QtCore.SIGNAL('timeout()'), self.readVoltButtonEvent)
-        #QtCore.QObject.connect(self.adc_interval_le, QtCore.SIGNAL('editingFinished()'), self.updateADCInterval)
-        QtCore.QObject.connect(self.ipAddrTextBox, QtCore.SIGNAL('editingFinished()'), self.updateIPAddress)
-        QtCore.QObject.connect(self.portTextBox, QtCore.SIGNAL('editingFinished()'), self.updatePort)
-
-
-    def updateButtonEvent(self):
-        a = self.relay_callback.set_relays(self.relays_cmd)
-        if (a != -1): self.updateRelayStatus(a)
-
-    def catchCheckBoxEvent(self, relay_id, value):
-        #Catches Relay_QCheckBox Event
-        #print str(reltype) + str(relay_id) + " " + str(value)
-        if (relay_id <= 8): self.relays_cmd += value #
-        print self.relays_cmd
-        #self.formatSetRelayMsg()
-
-    def formatSetRelayMsg(self):
-        self.set_relay_msg = '$,R,'
-        #SPDT A
-        if   (len(str(self.relays_cmd[0])) == 1): self.set_relay_msg += '00' + str(self.relays_cmd[0])
-        elif (len(str(self.relays_cmd[0])) == 2): self.set_relay_msg += '0'  + str(self.relays_cmd[0])
-        elif (len(str(self.relays_cmd[0])) == 3): self.set_relay_msg +=        str(self.relays_cmd[0])
-        self.set_relay_msg += ','
-        #SPDT B
-        if   (len(str(self.relays_cmd[1])) == 1): self.set_relay_msg += '00' + str(self.relays_cmd[1])
-        elif (len(str(self.relays_cmd[1])) == 2): self.set_relay_msg += '0'  + str(self.relays_cmd[1])
-        elif (len(str(self.relays_cmd[1])) == 3): self.set_relay_msg +=        str(self.relays_cmd[1])
-        self.set_relay_msg += ','
-        #DPDT A
-        if   (len(str(self.relays_cmd[2])) == 1): self.set_relay_msg += '00' + str(self.relays_cmd[2])
-        elif (len(str(self.relays_cmd[2])) == 2): self.set_relay_msg += '0'  + str(self.relays_cmd[2])
-        elif (len(str(self.relays_cmd[2])) == 3): self.set_relay_msg +=        str(self.relays_cmd[2])
-        self.set_relay_msg += ','
-        #DPDT B
-        if   (len(str(self.relays_cmd[3])) == 1): self.set_relay_msg += '00' + str(self.relays_cmd[3])
-        elif (len(str(self.relays_cmd[3])) == 2): self.set_relay_msg += '0'  + str(self.relays_cmd[3])
-        elif (len(str(self.relays_cmd[3])) == 3): self.set_relay_msg +=        str(self.relays_cmd[3])
-
-        print self.set_relay_msg
-
-    def readVoltButtonEvent(self):
-        a = self.relay_callback.get_adcs()
-        if (a != -1): self.updateADC(a)
-
-    def readRelayButtonEvent(self):
-        a = self.relay_callback.get_relays()
-        if (a != -1): self.updateRelayStatus(a)
-
-    def readStatusButtonEvent(self):
-        #print 'GUI|  Read Status Button Clicked'
-        a,b = self.relay_callback.get_status()
-        #print a,b
-        if (a != -1): self.updateRelayStatus(a)
-        if (b != -1): self.updateADC(b)
-        #else:
-        #    print 'GUI|  Not Connected to Relay Controller'
-        #    print 'GUI|  Must Connect to Relay Controller before reading Status'
-
-    def updateRelayStatus(self, rel):
-        mask = 0b00000001
-        for i in range(8):
-            #SPDT A
-            if ((rel[0]>>i) & mask): self.spdt_cb[i].setCheckState(QtCore.Qt.Checked)
-            else: self.spdt_cb[i].setCheckState(QtCore.Qt.Unchecked)
-            #SPDT B
-            if ((rel[1]>>i) & mask): self.spdt_cb[i+8].setCheckState(QtCore.Qt.Checked)
-            else: self.spdt_cb[i+8].setCheckState(QtCore.Qt.Unchecked)
-            #DPDT A
-            if ((rel[2]>>i) & mask): self.dpdt_cb[i].setCheckState(QtCore.Qt.Checked)
-            else: self.dpdt_cb[i].setCheckState(QtCore.Qt.Unchecked)
-            #DPDT B
-            if ((rel[3]>>i) & mask): self.dpdt_cb[i+8].setCheckState(QtCore.Qt.Checked)
-            else: self.dpdt_cb[i+8].setCheckState(QtCore.Qt.Unchecked)
-
-    def updateADC(self,adcs):
-        for i in range(len(adcs)):
-            self.field_value[i] = str(adcs[i]) + 'V'
-            self.adc_field_values_qlabels[i].setText(self.field_value[i])
-
-    def catchADCAutoEvent(self, state):
-        CheckState = (state == QtCore.Qt.Checked)
-        if CheckState == True:
-            self.ADCtimer.start()
-            print self.getTimeStampGMT() + "GUI|  Started ADC Auto Update, Interval: " + str(self.adc_interval) + " [ms]"
-        else:
-            self.ADCtimer.stop()
-            print self.getTimeStampGMT() + "GUI|  Stopped ADC Auto Update"
-
-    def updateADCInterval(self):
-        self.adc_interval = float(self.adc_interval_le.text()) * 1000.0
-        self.ADCtimer.setInterval(self.adc_interval)
-        print self.getTimeStampGMT() + "GUI|  Updated ADC Auto Interval to " + str(self.adc_interval) + " [ms]"
-
     def connectButtonEvent(self):
         if (not self.connected):  #Not connected, attempt to connect
             self.connected = self.relay_callback.connect()
@@ -420,166 +392,22 @@ class MainWindow(QtGui.QMainWindow):
                 self.ipAddrTextBox.setEnabled(True)
                 self.portTextBox.setEnabled(True)
 
-    def resetButtonEvent(self):
-        for i in range(16):
-            if self.spdt_cb[i].CheckState==True: self.spdt_cb[i].setCheckState(QtCore.Qt.Unchecked)
-            if self.dpdt_cb[i].CheckState==True: self.dpdt_cb[i].setCheckState(QtCore.Qt.Unchecked)
-        print self.getTimeStampGMT() + "GUI|  Cleared Relay Banks, Change Not Applied to RR Controller"
+    def darken(self):
+        palette = QtGui.QPalette()
+        palette.setColor(QtGui.QPalette.Background,QtCore.Qt.black)
+        palette.setColor(QtGui.QPalette.WindowText,QtCore.Qt.white)
+        palette.setColor(QtGui.QPalette.Text,QtCore.Qt.white)
+        self.setPalette(palette)
 
-    def setCallback(self, callback):
-        self.relay_callback = callback
-
-    def initADC(self):
-        field_name  = [ 'ADC1:', 'ADC2:', 'ADC3:', 'ADC4:', 'ADC5:', 'ADC6:', 'ADC7:', 'ADC8:']
-        self.field_value = [ '0.00V', '0.00V', '0.00V', '0.00V', '0.00V', '0.00V', '0.00V', '0.00V' ]
-
-        self.adc_auto_cb = QtGui.QCheckBox("Auto", self)  #Automatically update ADC voltages checkbox option
-        self.adc_auto_cb.setStyleSheet("QCheckBox { font-size: 12px; \
-                                                    background-color:rgb(0,0,0); \
-                                                    color:rgb(255,255,255); }")
-
-        self.adc_interval_le = QtGui.QLineEdit()
-        self.adc_interval_le.setText("1")
-        self.adc_validator = QtGui.QDoubleValidator()
-        self.adc_interval_le.setValidator(self.adc_validator)
-        self.adc_interval_le.setEchoMode(QtGui.QLineEdit.Normal)
-        self.adc_interval_le.setStyleSheet("QLineEdit {background-color:rgb(255,255,255); color:rgb(0,0,0);}")
-        self.adc_interval_le.setMaxLength(4)
-        self.adc_interval_le.setFixedWidth(30)
-
-        label = QtGui.QLabel('Interval[s]')
-        label.setAlignment(QtCore.Qt.AlignRight)
-        label.setAlignment(QtCore.Qt.AlignVCenter)
-        label.setStyleSheet("QLabel { font-size: 12px; background-color: rgb(0,0,0); color:rgb(255,255,255) ; }")
-
-        hbox1 = QtGui.QHBoxLayout()
-        hbox1.addWidget(self.adc_interval_le)
-        hbox1.addWidget(label)
-
-        self.adc_field_labels_qlabels = []        #List containing Static field Qlabels, do not change
-        self.adc_field_values_qlabels = []       #List containing the value of the field, updated per packet
-
-        self.ADCtimer = QtCore.QTimer(self)
-        self.ADCtimer.setInterval(self.adc_interval)
-
-        vbox = QtGui.QVBoxLayout()
-
-        for i in range(len(field_name)):
-            hbox = QtGui.QHBoxLayout()
-            self.adc_field_labels_qlabels.append(QtGui.QLabel(field_name[i]))
-            self.adc_field_labels_qlabels[i].setAlignment(QtCore.Qt.AlignLeft)
-            self.adc_field_values_qlabels.append(QtGui.QLabel(self.field_value[i]))
-            self.adc_field_values_qlabels[i].setAlignment(QtCore.Qt.AlignLeft)
-            hbox.addWidget(self.adc_field_labels_qlabels[i])
-            hbox.addWidget(self.adc_field_values_qlabels[i])
-            vbox.addLayout(hbox)
-        vbox.addWidget(self.adc_auto_cb)
-        vbox.addLayout(hbox1)
-        self.adc_fr.setLayout(vbox)
-
-
-
-    def initControls(self):
-        self.updateButton = QtGui.QPushButton("Update")
-        self.resetButton = QtGui.QPushButton("Reset")
-        self.readRelayButton = QtGui.QPushButton("Read Relay")
-        self.readVoltButton = QtGui.QPushButton("Read ADCs")
-        self.readStatusButton = QtGui.QPushButton("Read Status")
-
-        hbox1 = QtGui.QHBoxLayout()
-        hbox1.addWidget(self.readRelayButton)
-        hbox1.addWidget(self.readStatusButton)
-        hbox1.addWidget(self.readVoltButton)
-
-        hbox2 = QtGui.QHBoxLayout()
-        #hbox.addStretch(1)
-        hbox2.addWidget(self.updateButton)
-        hbox2.addWidget(self.resetButton)
-
-        vbox = QtGui.QVBoxLayout()
-        vbox.addLayout(hbox1)
-        vbox.addLayout(hbox2)
-
-        self.button_fr.setLayout(vbox)
-
-
-
-    def initDPDTCheckBoxes(self):
-        hbox1 = QtGui.QHBoxLayout()
-        for i in range(8):
-            self.dpdt_cb.append(Relay_QCheckBox(self, i+1, 'DPDT'+str(i+1), 1, pow(2,i)))
-            hbox1.addWidget(self.dpdt_cb[i])
-        hbox2 = QtGui.QHBoxLayout()
-        for i in range(8):
-            self.dpdt_cb.append(Relay_QCheckBox(self, i+1+8, 'DPDT'+str(i+1+8), 1, pow(2,i)))
-            hbox2.addWidget(self.dpdt_cb[i+8])
-
-        #for i in range(16): print str(self.dpdt_cb[i].name)
-
-        vbox = QtGui.QVBoxLayout()
-        vbox.addLayout(hbox1)
-        vbox.addLayout(hbox2)
-
-        self.dpdt_fr.setLayout(vbox)
-
-    def initFrames_old(self):
-        self.spdt_fr = QtGui.QFrame(self)
-        self.spdt_fr.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.spdt_fr.setFixedWidth(650)
-
-        self.dpdt_fr = QtGui.QFrame(self)
-        self.dpdt_fr.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.dpdt_fr.setFixedWidth(650)
-
-        self.adc_fr = QtGui.QFrame(self)
-        self.adc_fr.setFrameShape(QtGui.QFrame.StyledPanel)
-
-        self.button_fr = QtGui.QFrame(self)
-        self.button_fr.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.button_fr.setFixedWidth(445)
-
-        self.net_fr = QtGui.QFrame(self)
-        self.net_fr.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.net_fr.setFixedWidth(200)
-
-        vbox = QtGui.QVBoxLayout()
-        hbox1 = QtGui.QHBoxLayout()
-        hbox2 = QtGui.QHBoxLayout()
-
-        hbox2.addWidget(self.net_fr)
-        hbox2.addWidget(self.button_fr)
-
-        vbox.addWidget(self.spdt_fr)
-        vbox.addWidget(self.dpdt_fr)
-        vbox.addLayout(hbox2)
-
-        hbox1.addLayout(vbox)
-        hbox1.addWidget(self.adc_fr)
-
-        self.setLayout(hbox1)
-
-    def initRelayFrames(self):
-        hbox = QtGui.QHBoxLayout()
-
-        for i in range(8):
-            #self.relay_cb.append(Relay_QCheckBox(self, i+1, btn_name, 0, pow(2,i)))
-            self.relay_frames.append(Relay_Frame_Vertical(self.cfg[i]))
-            #self.relay_cb.append(QtGui.QPushButton(btn_name))
-            #self.relay_cb[i].setCheckable(True)
-            hbox.addWidget(self.relay_frames[i])
-
-        self.relay_fr.setLayout(hbox)
-
-    def initRelayCheckBoxes(self):
-        hbox = QtGui.QHBoxLayout()
-
-        for i in range(8):
-            btn_name = self.cfg[i]['name']
-            #self.relay_cb.append(Relay_QCheckBox(self, i+1, btn_name, 0, pow(2,i)))
-            self.relay_cb.append(Relay_QPushButton(self, i, "On", pow(2,i)))
-            #self.relay_cb.append(QtGui.QPushButton(btn_name))
-            #self.relay_cb[i].setCheckable(True)
-            hbox.addWidget(self.relay_cb[i])
-
-    def getTimeStampGMT(self):
-        return str(date.utcnow()) + " GMT | "
+    def connectSignals(self):
+        self.resetButton.clicked.connect(self.resetButtonEvent)
+        self.connectButton.clicked.connect(self.connectButtonEvent)
+        #self.adc_auto_cb.stateChanged.connect(self.catchADCAutoEvent)
+        self.readStatusButton.clicked.connect(self.readStatusButtonEvent)
+        self.readRelayButton.clicked.connect(self.readRelayButtonEvent)
+        self.readVoltButton.clicked.connect(self.readVoltButtonEvent)
+        self.updateButton.clicked.connect(self.updateButtonEvent)
+        #QtCore.QObject.connect(self.ADCtimer, QtCore.SIGNAL('timeout()'), self.readVoltButtonEvent)
+        #QtCore.QObject.connect(self.adc_interval_le, QtCore.SIGNAL('editingFinished()'), self.updateADCInterval)
+        QtCore.QObject.connect(self.ip_le, QtCore.SIGNAL('editingFinished()'), self.updateIPAddress)
+        QtCore.QObject.connect(self.port_le, QtCore.SIGNAL('editingFinished()'), self.updatePort)
