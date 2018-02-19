@@ -72,7 +72,7 @@ def main():
     #main_thread.run()
 
     app = QtGui.QApplication(sys.argv)
-    win = rr_main_gui.MainWindow(cfg['relay']['map'])
+    win = rr_main_gui.MainWindow(cfg)
     #win.setCallback(relay)
     win.show()
     #server_thread.set_gui_access(ex)

@@ -4,6 +4,88 @@ from PyQt4 import QtGui
 from PyQt4 import QtCore
 from PyQt4 import Qt
 import PyQt4.Qwt5 as Qwt
+import os
+
+class Relay_Frame_Vertical(QtGui.QFrame):
+    def __init__(self, cfg):
+        super(Relay_Frame_Vertical, self).__init__()
+        #self.parent = parent
+        self.rel_idx = cfg['idx']
+        #self.value = value
+        self.name = cfg['name']
+        self.device = cfg['device']
+        self.groups = cfg['groups']
+
+
+        self.state = False
+
+        self.initUI()
+
+    def initUI(self):
+        self.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.initWidgets()
+
+    def initWidgets(self):
+        #btn_hbox = QtGui.QHBoxLayout()
+        self.on_btn = QtGui.QPushButton()
+        self.on_btn.setCheckable(True)
+        self.on_btn.setFixedWidth(60)
+        self.on_btn.setFixedHeight(25)
+        self.on_btn.setStyleSheet("QPushButton {background-color:rgb(0,0,0);}")
+
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(os.getcwd() + '/gui/icons/led-green-off-oval.png'))
+        icon.addPixmap(QtGui.QPixmap(os.getcwd() + '/gui/icons/led-green-on-oval.png'), \
+                                                    QtGui.QIcon.Normal, \
+                                                    QtGui.QIcon.On)
+        self.on_btn.setIcon(icon)
+        self.on_btn.setIconSize(QtCore.QSize(50,25))
+        self.on_btn.toggled.connect(self.onButtonClicked)
+
+        self.idx_lbl = QtGui.QLabel(self.rel_idx)
+        self.idx_lbl.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
+        self.idx_lbl.setStyleSheet("QLabel {font-size:12px; color:rgb(255,255,255);}")
+
+        self.name_lbl = QtGui.QLabel(self.name)
+        self.name_lbl.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
+        self.name_lbl.setStyleSheet("QLabel {font-size:12px; color:rgb(255,255,255);}")
+
+        self.device_lbl = QtGui.QLabel(self.device)
+        self.device_lbl.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
+        self.device_lbl.setStyleSheet("QLabel {font-size:12px; color:rgb(255,255,255);}")
+
+        str_groups = ""
+        if (type(self.groups) is list):
+            str_groups = ",".join(self.groups)
+        elif type(self.groups) is unicode:
+            str_groups = self.groups
+        self.groups_lbl = QtGui.QLabel(str_groups)
+        self.groups_lbl.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
+        self.groups_lbl.setStyleSheet("QLabel {font-size:12px; color:rgb(255,255,255);}")
+
+        self.grid =  QtGui.QGridLayout()
+        self.grid.addWidget(self.name_lbl   ,1,0,1,1)
+        self.grid.addWidget(self.groups_lbl   ,2,0,1,1)
+        self.grid.addWidget(self.on_btn     ,0,0,1,1)
+        #self.grid.setColumnStretch(1,1)
+        self.grid.setColumnStretch(3,10)
+        self.grid.setSpacing(1)
+        self.grid.setContentsMargins(1,1,1,1)
+        self.setLayout(self.grid)
+
+        #btn_hbox.addWidget(self.on_btn)
+        #btn_hbox.addWidget(self.off_btn)
+        #btn_hbox.setContentsMargins(0, 0, 0, 0)
+        #self.setLayout(btn_hbox)
+
+    def onButtonClicked(self, state):
+        print state
+        self.state = state
+
+    def offButtonClicked(self):
+        self.buttonClicked(False)
+
+
 
 class Relay_Frame(QtGui.QFrame):
     def __init__(self, cfg):
@@ -28,7 +110,7 @@ class Relay_Frame(QtGui.QFrame):
         #btn_hbox = QtGui.QHBoxLayout()
         self.on_btn = QtGui.QPushButton("ON")
         self.on_btn.setCheckable(True)
-        self.on_btn.setFixedWidth(50)
+        self.on_btn.setFixedWidth(40)
         self.on_btn.setStyleSheet("QPushButton {font-size: 14px; \
                                                 font-weight:bold; \
                                                 background-color:rgb(0,255,0); \
@@ -38,7 +120,7 @@ class Relay_Frame(QtGui.QFrame):
         self.off_btn.setCheckable(True)
         self.off_btn.setChecked(True)
         self.off_btn.setEnabled(False)
-        self.off_btn.setFixedWidth(50)
+        self.off_btn.setFixedWidth(40)
         self.off_btn.setStyleSheet("QPushButton {font-size: 14px; \
                                                 font-weight:bold; \
                                                 background-color:rgb(255,0,0); \
