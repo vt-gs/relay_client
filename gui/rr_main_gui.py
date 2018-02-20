@@ -24,7 +24,7 @@ class MainWindow(QtGui.QMainWindow):
         #QtGui.QMainWindow.__init__(self)
         super(MainWindow, self).__init__()
         #self.resize(1500, 650)
-        self.setMinimumWidth(525)
+        self.setMinimumWidth(575)
         #self.setMaximumWidth(900)
         self.setMinimumHeight(550)
         #self.setMaximumHeight(700)
@@ -32,7 +32,7 @@ class MainWindow(QtGui.QMainWindow):
         self.setContentsMargins(0,0,0,0)
         self.main_window = main_widget()
         self.setCentralWidget(self.main_window)
-        self.resize(525, 550)
+        self.resize(575, 550)
         self.cfg = cfg
 
         self.led_frames     = []
@@ -55,6 +55,7 @@ class MainWindow(QtGui.QMainWindow):
         self.initLEDs()
         self.initTXRegFrame()
         self.initRXRegFrame()
+        self.initGroupFrame()
         self.initTable()
         self.initNet()
         self.initControls()
@@ -65,9 +66,47 @@ class MainWindow(QtGui.QMainWindow):
         self.allOnButton = QtGui.QPushButton("All ON")
 
 
-        self.btn_fr_grid.addWidget(self.allOffButton, 2,0,1,1)
-        self.btn_fr_grid.addWidget(self.allOnButton, 2,1,1,1)
-        self.btn_fr_grid.setRowStretch(3,1)
+        self.btn_fr_grid.addWidget(self.allOffButton, 4,0,1,1)
+        self.btn_fr_grid.addWidget(self.allOnButton, 4,1,1,1)
+        self.btn_fr_grid.setRowStretch(4,1)
+
+    def initGroupFrame(self):
+        self.group_combo = QtGui.QComboBox(self)
+        groups = []
+        for rel in self.cfg['relay']['map']:
+            if (type(rel['groups']) is list):
+                for grp in rel['groups']:
+                    if grp not in groups:
+                        groups.append(grp)
+            elif type(rel['groups']) is unicode:
+                    if rel['groups'] not in groups:
+                        groups.append(rel['groups'])
+
+        for grp in groups:
+            self.group_combo.addItem(grp)
+        self.group_combo.addItem('ALL')
+
+        self.device_combo = QtGui.QComboBox(self)
+        devices = []
+        for rel in self.cfg['relay']['map']:
+            if rel['device'] not in devices:
+                devices.append(rel['device'])
+
+        for dev in devices:
+            self.device_combo.addItem(dev)
+        self.device_combo.addItem('ALL')
+
+        self.grpEnableButton = QtGui.QPushButton("Enable")
+        self.grpDisableButton = QtGui.QPushButton("Disable")
+
+        grid = QtGui.QGridLayout()
+        grid.addWidget(self.group_combo,   0, 0, 1, 1)
+        grid.addWidget(self.device_combo,  0, 1, 1, 1)
+        grid.addWidget(self.grpDisableButton,  1, 0, 1, 1)
+        grid.addWidget(self.grpEnableButton,  1, 1, 1, 1)
+
+
+        self.grpdev_fr.setLayout(grid)
 
     def initTable(self):
         self.relay_table=Relay_Table(self.main_window)
@@ -118,57 +157,57 @@ class MainWindow(QtGui.QMainWindow):
         for cb in self.cb_group.buttons():
             if cb.isChecked():
                 self.tx_reg += pow(2,self.cb_group.id(cb))
-        hex_str = "{:d}\n(0x{:02X})".format(self.tx_reg, self.tx_reg)
+        #hex_str = "{:d}\n(0x{:02X})".format(self.tx_reg, self.tx_reg)
+        hex_str = "0x{:02X}".format(self.tx_reg)
         self.rel_reg_lbl_tx.setText(hex_str)
 
     def initTXRegFrame(self):
         vbox = QtGui.QVBoxLayout()
 
-        reg_lbl_tx = QtGui.QLabel('TX Register')
+        reg_lbl_tx = QtGui.QLabel('TX Register:')
         reg_lbl_tx.setFixedHeight(20)
         reg_lbl_tx.setStyleSheet("QLabel {  font-size:14px; \
                                             font-weight:bold; \
-                                            text-decoration:underline; \
                                             color:rgb(255,255,255) ; }")
+        #text-decoration:underline; \
         #reg_lbl_tx.setFixedWidth(85)
-        reg_lbl_tx.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
+        reg_lbl_tx.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
         self.rel_reg_lbl_tx = QtGui.QLabel('0x00')
-        self.rel_reg_lbl_tx.setAlignment(QtCore.Qt.AlignCenter)
+        self.rel_reg_lbl_tx.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         #self.rel_reg_lbl_tx.setFixedWidth(100)
         self.rel_reg_lbl_tx.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,255,255) ; }")
-        vbox_tx = QtGui.QVBoxLayout()
-        vbox_tx.addWidget(reg_lbl_tx)
-        vbox_tx.addWidget(self.rel_reg_lbl_tx)
+        hbox_tx = QtGui.QHBoxLayout()
+        hbox_tx.addWidget(reg_lbl_tx)
+        hbox_tx.addWidget(self.rel_reg_lbl_tx)
 
         self.write_all_btn = QtGui.QPushButton("Write All")
-        vbox_tx.addWidget(self.write_all_btn)
+        hbox_tx.addWidget(self.write_all_btn)
 
-        self.tx_reg_fr.setLayout(vbox_tx)
+        self.tx_reg_fr.setLayout(hbox_tx)
 
 
     def initRXRegFrame(self):
         vbox = QtGui.QVBoxLayout()
 
-        reg_lbl_rx = QtGui.QLabel('RX Register')
+        reg_lbl_rx = QtGui.QLabel('RX Register:')
         reg_lbl_rx.setFixedHeight(20)
         reg_lbl_rx.setStyleSheet("QLabel {  font-size:14px; \
                                             font-weight:bold; \
-                                            text-decoration:underline; \
                                             color:rgb(255,255,255) ; }")
         #reg_lbl_rx.setFixedWidth(85)
-        reg_lbl_rx.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
+        reg_lbl_rx.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
         self.rel_reg_lbl_rx = QtGui.QLabel('0x00')
-        self.rel_reg_lbl_rx.setAlignment(QtCore.Qt.AlignCenter)
+        self.rel_reg_lbl_rx.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         #self.rel_reg_lbl_rx.setFixedWidth(100)
         self.rel_reg_lbl_rx.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,255,255) ; }")
-        vbox_rx = QtGui.QVBoxLayout()
-        vbox_rx.addWidget(reg_lbl_rx)
-        vbox_rx.addWidget(self.rel_reg_lbl_rx)
+        hbox_rx = QtGui.QHBoxLayout()
+        hbox_rx.addWidget(reg_lbl_rx)
+        hbox_rx.addWidget(self.rel_reg_lbl_rx)
 
         self.read_all_btn = QtGui.QPushButton("Read All")
-        vbox_rx.addWidget(self.read_all_btn)
+        hbox_rx.addWidget(self.read_all_btn)
 
-        self.rx_reg_fr.setLayout(vbox_rx)
+        self.rx_reg_fr.setLayout(hbox_rx)
 
     def initLEDs(self):
         hbox_led = QtGui.QHBoxLayout()
@@ -214,12 +253,16 @@ class MainWindow(QtGui.QMainWindow):
         self.rx_reg_fr = QtGui.QFrame(self)
         self.rx_reg_fr.setFrameShape(QtGui.QFrame.StyledPanel)
 
+        self.grpdev_fr = QtGui.QFrame(self)
+        self.grpdev_fr.setFrameShape(QtGui.QFrame.StyledPanel)
+
         self.net_fr = QtGui.QFrame(self)
         self.net_fr.setFrameShape(QtGui.QFrame.StyledPanel)
 
         self.btn_fr_grid = QtGui.QGridLayout()
-        self.btn_fr_grid.addWidget(self.tx_reg_fr, 0,0,1,1)
-        self.btn_fr_grid.addWidget(self.rx_reg_fr, 0,1,1,1)
+        self.btn_fr_grid.addWidget(self.tx_reg_fr, 0,0,1,2)
+        self.btn_fr_grid.addWidget(self.rx_reg_fr, 1,0,1,2)
+        self.btn_fr_grid.addWidget(self.grpdev_fr, 2,0,1,2)
         self.button_fr.setLayout(self.btn_fr_grid)
 
         self.main_grid = QtGui.QGridLayout()
@@ -283,7 +326,7 @@ class MainWindow(QtGui.QMainWindow):
         self.pass_le.setEchoMode(QtGui.QLineEdit.Normal)
         self.pass_le.setStyleSheet("QLineEdit {background-color:rgb(255,255,255); color:rgb(0,0,0);}")
 
-        stat_lbl = QtGui.QLabel('Status:')
+        stat_lbl = QtGui.QLabel('Conn Status:')
         stat_lbl.setFixedWidth(lbl_width)
         stat_lbl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
         stat_lbl.setFixedHeight(le_height)
@@ -318,11 +361,12 @@ class MainWindow(QtGui.QMainWindow):
         grid.addWidget(self.pass_le ,3,1,1,1)
         grid.addWidget(stat_lbl     ,4,0,1,1)
         grid.addWidget(self.net_stat_lbl ,4,1,1,1)
-        grid.addWidget(state_lbl     ,5,0,1,1)
+        grid.addWidget(state_lbl    ,5,0,1,1)
         grid.addWidget(self.daemon_state_lbl ,5,1,1,1)
         grid.addWidget(self.startButton,6,0,1,1)
         grid.addWidget(self.connectButton,6,1,1,1)
-        grid.setSpacing(2)
+        grid.setSpacing(1)
+        grid.setRowStretch(7,1)
         self.net_fr.setLayout(grid)
 
     def updateIPAddress(self):
