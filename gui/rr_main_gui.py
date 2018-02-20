@@ -24,7 +24,7 @@ class MainWindow(QtGui.QMainWindow):
         #QtGui.QMainWindow.__init__(self)
         super(MainWindow, self).__init__()
         #self.resize(1500, 650)
-        self.setMinimumWidth(475)
+        self.setMinimumWidth(525)
         #self.setMaximumWidth(900)
         self.setMinimumHeight(525)
         #self.setMaximumHeight(700)
@@ -36,9 +36,13 @@ class MainWindow(QtGui.QMainWindow):
         self.cfg = cfg
 
         self.led_frames     = []
-        self.relay_cb   = []   #list to hold spdt relay check boxes
-        self.leds = []
-        self.table_led = []
+        self.relay_cb       = []   #list to hold spdt relay check boxes
+        self.relay_rb_on    = []
+        self.relay_rb_off   = []
+        self.leds           = []
+        self.table_led      = []
+
+        self.tx_reg = 0
 
         #----Keep these function calls----
         self.initUI()
@@ -49,7 +53,7 @@ class MainWindow(QtGui.QMainWindow):
         self.initFrames()
         #self.initRelayFrames()
         self.initLEDs()
-        #self.initRelayAllFrame()
+        self.initRegFrame()
         self.initTable()
         self.initNet()
         #self.initRelayCheckBoxes()
@@ -62,64 +66,58 @@ class MainWindow(QtGui.QMainWindow):
 
     def initTable(self):
         self.relay_table=Relay_Table(self.main_window)
-
+        self.cb_group = QtGui.QButtonGroup()
+        self.cb_group.setExclusive(False)
         for i in range(8):
-            cb = QtGui.QCheckBox("Relay " + str(i))
+            #cb = QtGui.QCheckBox("Relay " + str(i))
+            cb = QtGui.QCheckBox("{:03d}".format(pow(2,i)))
             cb.setStyleSheet("QCheckBox {   font-size:14px; \
                                             background-color:rgb(0,0,0); \
                                             color:rgb(255,255,255) ; }")
+            self.cb_group.addButton(cb, i)
+            rb_on = QtGui.QRadioButton("ON")
+            rb_on.setStyleSheet("QRadioButton { font-size:14px; \
+                                                background-color:rgb(0,0,0); \
+                                                color:rgb(255,255,255) ; }")
+            rb_off = QtGui.QRadioButton("OFF")
+            rb_off.setStyleSheet("QRadioButton { font-size:14px; \
+                                                 background-color:rgb(0,0,0); \
+                                                 color:rgb(255,255,255) ; }")
+            rb_off.setChecked(True)
+
+            self.relay_rb_on.append(rb_on)
+            self.relay_rb_off.append(rb_off)
             self.relay_cb.append(cb)
 
             self.table_led.append(LED(i, 20, 'g'))
-            self.relay_table.add_relay(self.cfg['relay']['map'][i], self.table_led[i], self.relay_cb[i])
+            self.relay_table.add_relay( self.cfg['relay']['map'][i], \
+                                        self.table_led[i], \
+                                        self.relay_cb[i], \
+                                        self.relay_rb_on[i], \
+                                        self.relay_rb_off[i] )
+
             self.relay_cb[i].clicked.connect(self.table_led[i].set_state)
 
+        self.cb_group.buttonClicked.connect(self.cbClicked)
 
-        reg_lbl_tx = QtGui.QLabel('TX Register:')
-        reg_lbl_tx.setFixedHeight(20)
-        reg_lbl_tx.setStyleSheet("QLabel {  font-size:14px; \
-                                            font-weight:bold; \
-                                            text-decoration:underline; \
-                                            color:rgb(255,255,255) ; }")
-        reg_lbl_tx.setFixedWidth(85)
-        reg_lbl_tx.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
-        self.rel_reg_lbl_tx = QtGui.QLabel('0x00')
-        self.rel_reg_lbl_tx.setAlignment(QtCore.Qt.AlignCenter)
-        self.rel_reg_lbl_tx.setFixedWidth(100)
-        self.rel_reg_lbl_tx.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,255,255) ; }")
-        self.write_all_btn = QtGui.QPushButton("Write All")
-        vbox_tx = QtGui.QVBoxLayout()
-        vbox_tx.addWidget(reg_lbl_tx)
-        vbox_tx.addWidget(self.rel_reg_lbl_tx)
-        vbox_tx.addWidget(self.write_all_btn)
-
-
-
-
-        #vbox_rx = QtGui.QVBoxLayout()
-        #vbox.addLayout(hbox_reg)
-        #vbox.addLayout(hbox_btn)
-        #hbox = QtGui.QHBoxLayout()
-        #hbox.addWidget(self.relay_table)
         grid = QtGui.QGridLayout()
         grid.addWidget(self.relay_table,0,0,2,2)
-        #grid.addLayout(vbox_rx,1,2,1,1)
-
-
         grid.setSpacing(0)
         grid.setContentsMargins(0,0,0,0)
         grid.setRowStretch(0,1)
         self.table_fr.setLayout(grid)
 
-    def initRelayAllFrame(self):
+    def cbClicked(self,id):
+        id_num = self.cb_group.id(id)
+        self.tx_reg = 0
+        for cb in self.cb_group.buttons():
+            if cb.isChecked():
+                self.tx_reg += pow(2,self.cb_group.id(cb))
+        hex_str = "{:d}\n(0x{:02X})".format(self.tx_reg, self.tx_reg)
+        self.rel_reg_lbl_tx.setText(hex_str)
+
+    def initRegFrame(self):
         vbox = QtGui.QVBoxLayout()
-        for i in range(8):
-            cb = QtGui.QCheckBox("Relay " + str(i))
-            cb.setStyleSheet("QCheckBox {   font-size:14px; \
-                                            background-color:rgb(0,0,0); \
-                                            color:rgb(255,255,255) ; }")
-            self.relay_cb.append(cb)
-            vbox.addWidget(self.relay_cb[i])
 
         reg_lbl_tx = QtGui.QLabel('TX Register:')
         reg_lbl_tx.setFixedHeight(20)
@@ -166,7 +164,7 @@ class MainWindow(QtGui.QMainWindow):
         vbox.addLayout(hbox_reg)
         vbox.addLayout(hbox_btn)
 
-        self.relay_all_fr.setLayout(vbox)
+        self.reg_fr.setLayout(vbox)
 
     def initLEDs(self):
         hbox_led = QtGui.QHBoxLayout()
@@ -220,8 +218,8 @@ class MainWindow(QtGui.QMainWindow):
         self.table_fr = QtGui.QFrame(self)
         self.table_fr.setFrameShape(QtGui.QFrame.StyledPanel)
 
-        #self.relay_all_fr = QtGui.QFrame(self)
-        #self.relay_all_fr.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.reg_fr = QtGui.QFrame(self)
+        self.reg_fr.setFrameShape(QtGui.QFrame.StyledPanel)
 
 
         #self.button_fr.setFixedWidth(445)
@@ -243,10 +241,10 @@ class MainWindow(QtGui.QMainWindow):
         #hbox1.addLayout(vbox)
         #hbox1.addWidget(self.adc_fr)
         self.main_grid = QtGui.QGridLayout()
-        self.main_grid.addWidget(self.led_fr,       0,0,1,4)
-        self.main_grid.addWidget(self.table_fr,     1,0,1,4)
-        #self.main_grid.addWidget(self.relay_all_fr, 1,2,1,2)
-        self.main_grid.addWidget(self.net_fr,       2,0,1,3)
+        self.main_grid.addWidget(self.led_fr,   0,0,1,4)
+        self.main_grid.addWidget(self.table_fr, 1,0,1,4)
+        self.main_grid.addWidget(self.net_fr,   2,0,1,3)
+        self.main_grid.addWidget(self.reg_fr,   2,3,1,1)
         #self.main_grid.setRowStretch(1,2)
         #self.main_grid.setRowStretch(2,1)
         self.main_grid.setColumnStretch(3,1)
