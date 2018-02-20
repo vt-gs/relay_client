@@ -26,13 +26,13 @@ class MainWindow(QtGui.QMainWindow):
         #self.resize(1500, 650)
         self.setMinimumWidth(525)
         #self.setMaximumWidth(900)
-        self.setMinimumHeight(525)
+        self.setMinimumHeight(550)
         #self.setMaximumHeight(700)
         self.setWindowTitle('Relay Control Client v1.0')
         self.setContentsMargins(0,0,0,0)
         self.main_window = main_widget()
         self.setCentralWidget(self.main_window)
-        self.resize(475, 500)
+        self.resize(525, 550)
         self.cfg = cfg
 
         self.led_frames     = []
@@ -53,16 +53,21 @@ class MainWindow(QtGui.QMainWindow):
         self.initFrames()
         #self.initRelayFrames()
         self.initLEDs()
-        self.initRegFrame()
+        self.initTXRegFrame()
+        self.initRXRegFrame()
         self.initTable()
         self.initNet()
-        #self.initRelayCheckBoxes()
-
-        #self.initSPDTCheckBoxes()
-        #self.initDPDTCheckBoxes()
-        #self.initADC()
-        #self.initControls()
+        self.initControls()
         #self.connectSignals()
+
+    def initControls(self):
+        self.allOffButton = QtGui.QPushButton("All OFF")
+        self.allOnButton = QtGui.QPushButton("All ON")
+
+
+        self.btn_fr_grid.addWidget(self.allOffButton, 2,0,1,1)
+        self.btn_fr_grid.addWidget(self.allOnButton, 2,1,1,1)
+        self.btn_fr_grid.setRowStretch(3,1)
 
     def initTable(self):
         self.relay_table=Relay_Table(self.main_window)
@@ -116,55 +121,54 @@ class MainWindow(QtGui.QMainWindow):
         hex_str = "{:d}\n(0x{:02X})".format(self.tx_reg, self.tx_reg)
         self.rel_reg_lbl_tx.setText(hex_str)
 
-    def initRegFrame(self):
+    def initTXRegFrame(self):
         vbox = QtGui.QVBoxLayout()
 
-        reg_lbl_tx = QtGui.QLabel('TX Register:')
+        reg_lbl_tx = QtGui.QLabel('TX Register')
         reg_lbl_tx.setFixedHeight(20)
         reg_lbl_tx.setStyleSheet("QLabel {  font-size:14px; \
                                             font-weight:bold; \
                                             text-decoration:underline; \
                                             color:rgb(255,255,255) ; }")
-        reg_lbl_tx.setFixedWidth(85)
+        #reg_lbl_tx.setFixedWidth(85)
         reg_lbl_tx.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
         self.rel_reg_lbl_tx = QtGui.QLabel('0x00')
         self.rel_reg_lbl_tx.setAlignment(QtCore.Qt.AlignCenter)
-        self.rel_reg_lbl_tx.setFixedWidth(100)
+        #self.rel_reg_lbl_tx.setFixedWidth(100)
         self.rel_reg_lbl_tx.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,255,255) ; }")
         vbox_tx = QtGui.QVBoxLayout()
         vbox_tx.addWidget(reg_lbl_tx)
         vbox_tx.addWidget(self.rel_reg_lbl_tx)
 
-        reg_lbl_rx = QtGui.QLabel('RX Register:')
+        self.write_all_btn = QtGui.QPushButton("Write All")
+        vbox_tx.addWidget(self.write_all_btn)
+
+        self.tx_reg_fr.setLayout(vbox_tx)
+
+
+    def initRXRegFrame(self):
+        vbox = QtGui.QVBoxLayout()
+
+        reg_lbl_rx = QtGui.QLabel('RX Register')
         reg_lbl_rx.setFixedHeight(20)
         reg_lbl_rx.setStyleSheet("QLabel {  font-size:14px; \
                                             font-weight:bold; \
                                             text-decoration:underline; \
                                             color:rgb(255,255,255) ; }")
-        reg_lbl_rx.setFixedWidth(85)
+        #reg_lbl_rx.setFixedWidth(85)
         reg_lbl_rx.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
         self.rel_reg_lbl_rx = QtGui.QLabel('0x00')
         self.rel_reg_lbl_rx.setAlignment(QtCore.Qt.AlignCenter)
-        self.rel_reg_lbl_rx.setFixedWidth(100)
+        #self.rel_reg_lbl_rx.setFixedWidth(100)
         self.rel_reg_lbl_rx.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,255,255) ; }")
         vbox_rx = QtGui.QVBoxLayout()
         vbox_rx.addWidget(reg_lbl_rx)
         vbox_rx.addWidget(self.rel_reg_lbl_rx)
 
-        hbox_reg = QtGui.QHBoxLayout()
-        hbox_reg.addLayout(vbox_tx)
-        hbox_reg.addLayout(vbox_rx)
-
         self.read_all_btn = QtGui.QPushButton("Read All")
-        self.write_all_btn = QtGui.QPushButton("Write All")
-        hbox_btn = QtGui.QHBoxLayout()
-        hbox_btn.addWidget(self.write_all_btn)
-        hbox_btn.addWidget(self.read_all_btn)
+        vbox_rx.addWidget(self.read_all_btn)
 
-        vbox.addLayout(hbox_reg)
-        vbox.addLayout(hbox_btn)
-
-        self.reg_fr.setLayout(vbox)
+        self.rx_reg_fr.setLayout(vbox_rx)
 
     def initLEDs(self):
         hbox_led = QtGui.QHBoxLayout()
@@ -190,23 +194,6 @@ class MainWindow(QtGui.QMainWindow):
             #hbox_led.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
             hbox_led.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
 
-        reg_lbl_rx = QtGui.QLabel('RX Register:')
-        reg_lbl_rx.setFixedHeight(20)
-        reg_lbl_rx.setStyleSheet("QLabel {  font-size:14px; \
-                                            font-weight:bold; \
-                                            text-decoration:underline; \
-                                            color:rgb(255,255,255) ; }")
-        reg_lbl_rx.setFixedWidth(85)
-        reg_lbl_rx.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignVCenter)
-        self.rel_reg_lbl_rx = QtGui.QLabel('0x00')
-        self.rel_reg_lbl_rx.setAlignment(QtCore.Qt.AlignCenter)
-        self.rel_reg_lbl_rx.setFixedWidth(100)
-        self.rel_reg_lbl_rx.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,255,255) ; }")
-        self.read_all_btn = QtGui.QPushButton("Read All")
-        vbox_rx = QtGui.QVBoxLayout()
-        vbox_rx.addWidget(reg_lbl_rx)
-        vbox_rx.addWidget(self.rel_reg_lbl_rx)
-        vbox_rx.addWidget(self.read_all_btn)
 
         #hbox_led.addLayout(vbox_rx)
         self.led_fr.setLayout(hbox_led)
@@ -218,33 +205,28 @@ class MainWindow(QtGui.QMainWindow):
         self.table_fr = QtGui.QFrame(self)
         self.table_fr.setFrameShape(QtGui.QFrame.StyledPanel)
 
-        self.reg_fr = QtGui.QFrame(self)
-        self.reg_fr.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.button_fr = QtGui.QFrame(self)
+        self.button_fr.setFrameShape(QtGui.QFrame.StyledPanel)
 
+        self.tx_reg_fr = QtGui.QFrame(self)
+        self.tx_reg_fr.setFrameShape(QtGui.QFrame.StyledPanel)
 
-        #self.button_fr.setFixedWidth(445)
+        self.rx_reg_fr = QtGui.QFrame(self)
+        self.rx_reg_fr.setFrameShape(QtGui.QFrame.StyledPanel)
 
         self.net_fr = QtGui.QFrame(self)
         self.net_fr.setFrameShape(QtGui.QFrame.StyledPanel)
-        #self.net_fr.setFixedWidth(200)
 
-        #vbox = QtGui.QVBoxLayout()
-        #hbox1 = QtGui.QHBoxLayout()
-        #hbox2 = QtGui.QHBoxLayout()
+        self.btn_fr_grid = QtGui.QGridLayout()
+        self.btn_fr_grid.addWidget(self.tx_reg_fr, 0,0,1,1)
+        self.btn_fr_grid.addWidget(self.rx_reg_fr, 0,1,1,1)
+        self.button_fr.setLayout(self.btn_fr_grid)
 
-        #hbox2.addWidget(self.net_fr)
-        #hbox2.addWidget(self.button_fr)
-
-
-        #vbox.addLayout(hbox2)
-
-        #hbox1.addLayout(vbox)
-        #hbox1.addWidget(self.adc_fr)
         self.main_grid = QtGui.QGridLayout()
         self.main_grid.addWidget(self.led_fr,   0,0,1,4)
         self.main_grid.addWidget(self.table_fr, 1,0,1,4)
         self.main_grid.addWidget(self.net_fr,   2,0,1,3)
-        self.main_grid.addWidget(self.reg_fr,   2,3,1,1)
+        self.main_grid.addWidget(self.button_fr,   2,3,1,1)
         #self.main_grid.setRowStretch(1,2)
         #self.main_grid.setRowStretch(2,1)
         self.main_grid.setColumnStretch(3,1)
@@ -311,7 +293,18 @@ class MainWindow(QtGui.QMainWindow):
         self.net_stat_lbl.setFixedHeight(le_height)
         self.net_stat_lbl.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,0,0) ; }")
 
+        state_lbl = QtGui.QLabel('Daemon State:')
+        state_lbl.setFixedWidth(lbl_width)
+        state_lbl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
+        state_lbl.setFixedHeight(le_height)
+        self.daemon_state_lbl = QtGui.QLabel('IDLE')
+        self.daemon_state_lbl.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.daemon_state_lbl.setFixedWidth(lbl_width)
+        self.daemon_state_lbl.setFixedHeight(le_height)
+        self.daemon_state_lbl.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,0,0) ; }")
+
         self.connectButton = QtGui.QPushButton("Connect")
+        self.startButton   = QtGui.QPushButton("Start")
 
         grid =  QtGui.QGridLayout()
         #                           ,r,c,r,c
@@ -325,7 +318,10 @@ class MainWindow(QtGui.QMainWindow):
         grid.addWidget(self.pass_le ,3,1,1,1)
         grid.addWidget(stat_lbl     ,4,0,1,1)
         grid.addWidget(self.net_stat_lbl ,4,1,1,1)
-        grid.addWidget(self.connectButton,5,1,1,1)
+        grid.addWidget(state_lbl     ,5,0,1,1)
+        grid.addWidget(self.daemon_state_lbl ,5,1,1,1)
+        grid.addWidget(self.startButton,6,0,1,1)
+        grid.addWidget(self.connectButton,6,1,1,1)
         grid.setSpacing(2)
         self.net_fr.setLayout(grid)
 
@@ -337,28 +333,7 @@ class MainWindow(QtGui.QMainWindow):
         port = self.port_le.text()
         self.service_callback.set_port(port)
 
-    def initControls(self):
-        self.updateButton = QtGui.QPushButton("Update")
-        self.resetButton = QtGui.QPushButton("Reset")
-        self.readRelayButton = QtGui.QPushButton("Read Relay")
-        self.readVoltButton = QtGui.QPushButton("Read ADCs")
-        self.readStatusButton = QtGui.QPushButton("Read Status")
 
-        hbox1 = QtGui.QHBoxLayout()
-        hbox1.addWidget(self.readRelayButton)
-        hbox1.addWidget(self.readStatusButton)
-        hbox1.addWidget(self.readVoltButton)
-
-        hbox2 = QtGui.QHBoxLayout()
-        #hbox.addStretch(1)
-        hbox2.addWidget(self.updateButton)
-        hbox2.addWidget(self.resetButton)
-
-        vbox = QtGui.QVBoxLayout()
-        vbox.addLayout(hbox1)
-        vbox.addLayout(hbox2)
-
-        self.button_fr.setLayout(vbox)
 
     def set_service_callback(self, cb):
         """
