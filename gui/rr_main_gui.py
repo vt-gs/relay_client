@@ -19,6 +19,17 @@ class main_widget(QtGui.QWidget):
         self.grid = QtGui.QGridLayout()
         #self.setLayout(self.grid)
 
+class relay_callback():
+
+    def connect(self):
+        print "Connecting"
+        return True
+
+    def disconnect(self):
+        print "Disconnecting"
+        return False
+
+
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, cfg):
         #QtGui.QMainWindow.__init__(self)
@@ -34,6 +45,8 @@ class MainWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.main_window)
         self.resize(575, 550)
         self.cfg = cfg
+        self.connected = False
+        self.relay_callb = relay_callback()
 
         self.led_frames     = []
         self.relay_cb       = []   #list to hold spdt relay check boxes
@@ -59,7 +72,7 @@ class MainWindow(QtGui.QMainWindow):
         self.initTable()
         self.initNet()
         self.initControls()
-        #self.connectSignals()
+        self.connectSignals()
 
     def initControls(self):
         self.allOffButton = QtGui.QPushButton("All OFF")
@@ -285,7 +298,8 @@ class MainWindow(QtGui.QMainWindow):
         ip_lbl.setFixedHeight(le_height)
         self.ip_le = QtGui.QLineEdit()
         self.ip_le.setFixedHeight(le_height)
-        self.ip_le.setText("192.168.42.11")
+#        self.ip_le.setText("0.0.0.0")
+        self.ip_le.setText(self.cfg['broker']['ip'])
         self.ip_le.setInputMask("000.000.000.000;")
         self.ip_le.setEchoMode(QtGui.QLineEdit.Normal)
         self.ip_le.setStyleSheet("QLineEdit {background-color:rgb(255,255,255); color:rgb(0,0,0);}")
@@ -330,21 +344,21 @@ class MainWindow(QtGui.QMainWindow):
         stat_lbl.setFixedWidth(lbl_width)
         stat_lbl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
         stat_lbl.setFixedHeight(le_height)
-        self.net_stat_lbl = QtGui.QLabel('Disconnected')
-        self.net_stat_lbl.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-        self.net_stat_lbl.setFixedWidth(lbl_width)
-        self.net_stat_lbl.setFixedHeight(le_height)
-        self.net_stat_lbl.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,0,0) ; }")
+        self.net_state_label = QtGui.QLabel('Disconnected')
+        self.net_state_label.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.net_state_label.setFixedWidth(lbl_width)
+        self.net_state_label.setFixedHeight(le_height)
+        self.net_state_label.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,0,0) ; }")
 
         state_lbl = QtGui.QLabel('Daemon State:')
         state_lbl.setFixedWidth(lbl_width)
         state_lbl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
         state_lbl.setFixedHeight(le_height)
-        self.daemon_state_lbl = QtGui.QLabel('IDLE')
-        self.daemon_state_lbl.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-        self.daemon_state_lbl.setFixedWidth(lbl_width)
-        self.daemon_state_lbl.setFixedHeight(le_height)
-        self.daemon_state_lbl.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,0,0) ; }")
+        self.daemon_state_label = QtGui.QLabel('IDLE')
+        self.daemon_state_label.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.daemon_state_label.setFixedWidth(lbl_width)
+        self.daemon_state_label.setFixedHeight(le_height)
+        self.daemon_state_label.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,0,0) ; }")
 
         self.connectButton = QtGui.QPushButton("Connect")
         self.startButton   = QtGui.QPushButton("Start")
@@ -360,9 +374,9 @@ class MainWindow(QtGui.QMainWindow):
         grid.addWidget(pass_lbl     ,3,0,1,1)
         grid.addWidget(self.pass_le ,3,1,1,1)
         grid.addWidget(stat_lbl     ,4,0,1,1)
-        grid.addWidget(self.net_stat_lbl ,4,1,1,1)
+        grid.addWidget(self.net_state_label ,4,1,1,1)
         grid.addWidget(state_lbl    ,5,0,1,1)
-        grid.addWidget(self.daemon_state_lbl ,5,1,1,1)
+        grid.addWidget(self.daemon_state_label ,5,1,1,1)
         grid.addWidget(self.startButton,6,0,1,1)
         grid.addWidget(self.connectButton,6,1,1,1)
         grid.setSpacing(1)
@@ -389,21 +403,21 @@ class MainWindow(QtGui.QMainWindow):
 
     def connectButtonEvent(self):
         if (not self.connected):  #Not connected, attempt to connect
-            self.connected = self.relay_callback.connect()
+            self.connected = self.relay_callb.connect()
             if (self.connected):
                 self.connectButton.setText('Disconnect')
-                self.net_label.setText("Connected")
-                self.net_label.setStyleSheet("QLabel {  font-weight:bold; color:rgb(0,255,0) ; }")
+                self.net_state_label.setText("Connected")
+                self.net_state_label.setStyleSheet("QLabel {  font-weight:bold; color:rgb(0,255,0) ; }")
                 self.ipAddrTextBox.setStyleSheet("QLineEdit {background-color:rgb(225,225,225); color:rgb(0,0,0);}")
                 self.portTextBox.setStyleSheet("QLineEdit {background-color:rgb(225,225,225); color:rgb(0,0,0);}")
                 self.ipAddrTextBox.setEnabled(False)
                 self.portTextBox.setEnabled(False)
         else:
-            self.connected = self.relay_callback.disconnect()
+            self.connected = self.relay_callb.disconnect()
             if (not self.connected):
                 self.connectButton.setText('Connect')
-                self.net_label.setText("Disconnected")
-                self.net_label.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,0,0) ; }")
+                self.net_state_label.setText("Disconnected")
+                self.net_state_label.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,0,0) ; }")
                 self.ipAddrTextBox.setStyleSheet("QLineEdit {background-color:rgb(255,255,255); color:rgb(0,0,0);}")
                 self.portTextBox.setStyleSheet("QLineEdit {background-color:rgb(255,255,255); color:rgb(0,0,0);}")
                 self.ipAddrTextBox.setEnabled(True)
@@ -417,14 +431,18 @@ class MainWindow(QtGui.QMainWindow):
         self.setPalette(palette)
 
     def connectSignals(self):
-        self.resetButton.clicked.connect(self.resetButtonEvent)
+#####
+# TO DO: Get the rest of these working
+#####
+
+#        self.resetButton.clicked.connect(self.resetButtonEvent)
         self.connectButton.clicked.connect(self.connectButtonEvent)
         #self.adc_auto_cb.stateChanged.connect(self.catchADCAutoEvent)
-        self.readStatusButton.clicked.connect(self.readStatusButtonEvent)
-        self.readRelayButton.clicked.connect(self.readRelayButtonEvent)
-        self.readVoltButton.clicked.connect(self.readVoltButtonEvent)
-        self.updateButton.clicked.connect(self.updateButtonEvent)
+#        self.readStatusButton.clicked.connect(self.readStatusButtonEvent)
+#        self.readRelayButton.clicked.connect(self.readRelayButtonEvent)
+#        self.readVoltButton.clicked.connect(self.readVoltButtonEvent)
+#        self.updateButton.clicked.connect(self.updateButtonEvent)
         #QtCore.QObject.connect(self.ADCtimer, QtCore.SIGNAL('timeout()'), self.readVoltButtonEvent)
         #QtCore.QObject.connect(self.adc_interval_le, QtCore.SIGNAL('editingFinished()'), self.updateADCInterval)
-        QtCore.QObject.connect(self.ip_le, QtCore.SIGNAL('editingFinished()'), self.updateIPAddress)
-        QtCore.QObject.connect(self.port_le, QtCore.SIGNAL('editingFinished()'), self.updatePort)
+#        QtCore.QObject.connect(self.ip_le, QtCore.SIGNAL('editingFinished()'), self.updateIPAddress)
+#        QtCore.QObject.connect(self.port_le, QtCore.SIGNAL('editingFinished()'), self.updatePort)
