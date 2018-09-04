@@ -13,7 +13,7 @@
 import threading
 import time
 
-#from logger import *
+from logger import *
 #import numato
 import service_thread
 
