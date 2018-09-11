@@ -7,8 +7,11 @@ import PyQt4.Qwt5 as Qwt
 import numpy as np
 from datetime import datetime as date
 import sys
+from Queue import Queue
+
 from LED import *
 from relay_table import *
+from state_handler import *
 
 class main_widget(QtGui.QWidget):
     def __init__(self):
@@ -21,12 +24,24 @@ class main_widget(QtGui.QWidget):
 
 class relay_callback():
 
-    def connect(self):
+
+    def __init__(self, config):
+
+        self.statehand = state_handler(config)
+
+    def connect(self, config):
+#        statehand = state_handler(config)
         print "Connecting"
+        print config
+#        connectcfg = self.cfg
+        print config
+        self.statehand.stateQueue.put("ACTIVE")
+#        print self.state
         return True
 
     def disconnect(self):
         print "Disconnecting"
+#        print self.state
         return False
 
 
@@ -46,7 +61,7 @@ class MainWindow(QtGui.QMainWindow):
         self.resize(575, 550)
         self.cfg = cfg
         self.connected = False
-        self.relay_callb = relay_callback()
+        self.relay_callb = relay_callback(self.cfg)
 
         self.led_frames     = []
         self.relay_cb       = []   #list to hold spdt relay check boxes
@@ -403,7 +418,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def connectButtonEvent(self):
         if (not self.connected):  #Not connected, attempt to connect
-            self.connected = self.relay_callb.connect()
+#            print self.cfg
+            self.connected = self.relay_callb.connect(self.cfg)
             if (self.connected):
                 self.connectButton.setText('Disconnect')
                 self.net_state_label.setText("Connected")
@@ -414,7 +430,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.ip_le.setEnabled(False)
                 self.port_le.setEnabled(False)
         else:
-            self.connected = self.relay_callb.disconnect()
+            self.connected = self.relay_callb.disconnect(self)
             if (not self.connected):
                 self.connectButton.setText('Connect')
                 self.net_state_label.setText("Disconnected")
