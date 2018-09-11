@@ -46,7 +46,7 @@ class Service_Thread(threading.Thread):
         self.ssid   = ssid
         self.cfg    = cfg
 
-        self.rx_q   = Queue() #MEssages received from Broker, command
+        self.rx_q   = Queue() #Messages received from Broker, command
         self.tx_q   = Queue() #Messages sent to broker, feedback
 
         self.consumer = Consumer(cfg, loggername=self.ssid)
@@ -70,7 +70,7 @@ class Service_Thread(threading.Thread):
 
         #Start consumer
         self.consume_thread.start()
-        #star producer
+        #start producer
         self.produce_thread.start()
 
         while (not self._stop.isSet()):
