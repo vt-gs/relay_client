@@ -408,20 +408,22 @@ class MainWindow(QtGui.QMainWindow):
                 self.connectButton.setText('Disconnect')
                 self.net_state_label.setText("Connected")
                 self.net_state_label.setStyleSheet("QLabel {  font-weight:bold; color:rgb(0,255,0) ; }")
-                self.ipAddrTextBox.setStyleSheet("QLineEdit {background-color:rgb(225,225,225); color:rgb(0,0,0);}")
-                self.portTextBox.setStyleSheet("QLineEdit {background-color:rgb(225,225,225); color:rgb(0,0,0);}")
-                self.ipAddrTextBox.setEnabled(False)
-                self.portTextBox.setEnabled(False)
+                # Gray out RMQ IP address and port text boxes and disable them
+                self.ip_le.setStyleSheet("QLineEdit {background-color:rgb(225,225,225); color:rgb(0,0,0);}")
+                self.port_le.setStyleSheet("QLineEdit {background-color:rgb(225,225,225); color:rgb(0,0,0);}")
+                self.ip_le.setEnabled(False)
+                self.port_le.setEnabled(False)
         else:
             self.connected = self.relay_callb.disconnect()
             if (not self.connected):
                 self.connectButton.setText('Connect')
                 self.net_state_label.setText("Disconnected")
                 self.net_state_label.setStyleSheet("QLabel {  font-weight:bold; color:rgb(255,0,0) ; }")
-                self.ipAddrTextBox.setStyleSheet("QLineEdit {background-color:rgb(255,255,255); color:rgb(0,0,0);}")
-                self.portTextBox.setStyleSheet("QLineEdit {background-color:rgb(255,255,255); color:rgb(0,0,0);}")
-                self.ipAddrTextBox.setEnabled(True)
-                self.portTextBox.setEnabled(True)
+                # Re-enable RMQ IP address and port text boxes
+                self.ip_le.setStyleSheet("QLineEdit {background-color:rgb(255,255,255); color:rgb(0,0,0);}")
+                self.port_le.setStyleSheet("QLineEdit {background-color:rgb(255,255,255); color:rgb(0,0,0);}")
+                self.ip_le.setEnabled(True)
+                self.port_le.setEnabled(True)
 
     def darken(self):
         palette = QtGui.QPalette()
