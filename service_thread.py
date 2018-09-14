@@ -15,7 +15,7 @@ import time
 import pika
 
 from Queue import Queue
-#from logger import *
+from logger import *
 from rabbitcomms import BrokerConsumer
 from rabbitcomms import BrokerProducer
 
