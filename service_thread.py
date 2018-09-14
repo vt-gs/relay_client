@@ -79,8 +79,6 @@ class Service_Thread(threading.Thread):
             else:
                 self.connected = False
 
-            print self.connected
-
             if self.connected:
                 if (not self.consumer.q.empty()): #received a message on command q
                     rx_msg = self.consumer.q.get()
