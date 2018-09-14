@@ -42,9 +42,9 @@ class Main_Thread(threading.Thread):
         try:
             while (not self._stop.isSet()):
                 if (not self.statehand.stateQueue.empty()):
-                    print "Not empty in main thread!"
-                    newstate=self.statehand.stateQueue.get()
-                    print newstate
+#                    print "Not empty in main thread!"
+                    self.state=self.statehand.stateQueue.get()
+#                    print newstate
                 if self.state == 'BOOT':
                     self._handle_state_boot()
                 elif self.state == 'STANDBY':
@@ -85,8 +85,9 @@ class Main_Thread(threading.Thread):
             self.set_state('FAULT', 'Failed to Launch Threads')
 
     def _handle_state_standby(self):
-        if not self.service_thread.get_connection_state():
-            self.set_state('FAULT', 'Service Thread Not connected to Broker')
+# Moving connected to broker to active state
+#        if not self.service_thread.get_connection_state():
+#            self.set_state('FAULT', 'Service Thread Not connected to Broker')
 
         #if (not self.tx_q.empty()): #received a messages
             #msg = self.tx_q.get()
@@ -98,8 +99,21 @@ class Main_Thread(threading.Thread):
 
     def _handle_state_active(self):
         #Describe ACTIVE here
-        #read uplink Queue from C2 Radio thread
-        #print 'ACTIVE'
+        # Thinking this is the state when the client is connected to the daemon
+        # or/through rabbitmq broker
+        print 'ACTIVE'
+        # First lets establish a connection to the rabbitmq broker
+        #Initialize Server Thread
+        self.logger.info('Setting up Service_Thread')
+        self.service_thread = service_thread.Service_Thread(self.ssid, self.cfg['broker'])
+        self.service_thread.daemon = True
+
+        #Launch threads
+        self.logger.info('Launching Service_Thread')
+        self.service_thread.start() #non-blocking
+
+        time.sleep(1)
+
         if (not self.service_thread.q.empty()):
             msg = self.service_thread.q.get()
             print '{:s} | Service Thread RX Message: {:s}'.format(self.name, msg)
@@ -145,16 +159,16 @@ class Main_Thread(threading.Thread):
             #self.relay_thread.daemon = True
 
             #Initialize Server Thread
-            self.logger.info('Setting up Service_Thread')
-            self.service_thread = service_thread.Service_Thread(self.ssid, self.cfg['broker'])
-            self.service_thread.daemon = True
+#            self.logger.info('Setting up Service_Thread')
+#            self.service_thread = service_thread.Service_Thread(self.ssid, self.cfg['broker'])
+#            self.service_thread.daemon = True
 
             #Launch threads
             #self.logger.info('Launching Relay_Thread')
             #self.relay_thread.start() #non-blocking
 
-            self.logger.info('Launching Service_Thread')
-            self.service_thread.start() #non-blocking
+#            self.logger.info('Launching Service_Thread')
+#            self.service_thread.start() #non-blocking
 
             time.sleep(2)
             return True
