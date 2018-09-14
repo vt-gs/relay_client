@@ -23,34 +23,39 @@ class state_handler():
 
     stateQueue = Queue()
 
+#########
+# TO DO: Think this can drop cfg if just using as Queue object to
+#        link between gui code and main_thread
+#########
+
     def __init__ (self, cfg):
 #        threading.Thread.__init__(self, name = 'Main_Thread')
 #        self._stop      = threading.Event()
-        print "In state handler"
+#        print "In state handler"
         self.name = 'State handler'
         self.cfg        = cfg
         self.startup_ts = cfg['startup_ts']
         self.log_path   = cfg['log_path']
         self.log_level  = cfg['log_level']
         self.ssid       = cfg['ssid']
-        print self.cfg
+#        print self.cfg
 
         self.state  = 'BOOT' #BOOT, STANDBY, ACTIVE, WX, FAULT
         self.msg_cnt = 0
         #setup logger
-        self.main_log_fh = setup_logger(self.ssid, level= self.log_level, ts=self.startup_ts, log_path=self.log_path)
-        self.logger = logging.getLogger(self.ssid) #main logger
+#        self.main_log_fh = setup_logger(self.ssid, level= self.log_level, ts=self.startup_ts, log_path=self.log_path)
+#        self.logger = logging.getLogger(self.ssid) #main logger
 
     def run(self):
         print "{:s} Started...".format(self.name)
         self.logger.info('Launched {:s}'.format(self.name))
         try:
             while (not self._stop.isSet()):
-#            while ():
-                if (not stateQueue.empty()):
-                    print "Not empty!"
-                    newstate=stateQueue.get()
-                    print newstate
+                print "Hi?"
+#                if (not stateQueue.empty()):
+#                    print "Not empty!"
+#                    newstate=stateQueue.get()
+#                    print newstate
                 if self.state == 'BOOT':
                     self._handle_state_boot()
                 elif self.state == 'STANDBY':
