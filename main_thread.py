@@ -12,10 +12,12 @@
 
 import threading
 import time
+import Queue
 
 from logger import *
 #import numato
 import service_thread
+from state_handler import *
 
 class Main_Thread(threading.Thread):
     def __init__ (self, cfg):
@@ -28,6 +30,7 @@ class Main_Thread(threading.Thread):
         self.ssid       = cfg['ssid']
 
         self.state  = 'BOOT' #BOOT, STANDBY, ACTIVE, WX, FAULT
+        self.statehand = state_handler(cfg)
         self.msg_cnt = 0
         #setup logger
         self.main_log_fh = setup_logger(self.ssid, level= self.log_level, ts=self.startup_ts, log_path=self.log_path)
@@ -38,6 +41,10 @@ class Main_Thread(threading.Thread):
         self.logger.info('Launched {:s}'.format(self.name))
         try:
             while (not self._stop.isSet()):
+                if (not self.statehand.stateQueue.empty()):
+                    print "Not empty in main thread!"
+                    newstate=self.statehand.stateQueue.get()
+                    print newstate
                 if self.state == 'BOOT':
                     self._handle_state_boot()
                 elif self.state == 'STANDBY':
@@ -84,8 +91,8 @@ class Main_Thread(threading.Thread):
         #if (not self.tx_q.empty()): #received a messages
             #msg = self.tx_q.get()
         msg = '[{:d}] test'.format(self.msg_cnt)
-        print "TX MSG:", msg
-        self.service_thread.tx_q.put(msg)
+#        print "TX MSG:", msg
+#        self.service_thread.tx_q.put(msg)
         #self.producer.send(msg, self.cfg['produce_key'])
         self.msg_cnt += 1
 
