@@ -13,6 +13,8 @@ from LED import *
 from relay_table import *
 from state_handler import *
 
+
+
 class main_widget(QtGui.QWidget):
     def __init__(self):
         super(main_widget, self).__init__()
@@ -32,15 +34,13 @@ class relay_callback():
     def connect(self, config):
 #        statehand = state_handler(config)
         print "Connecting"
-        print config
-#        connectcfg = self.cfg
-        print config
         self.statehand.stateQueue.put("ACTIVE")
 #        print self.state
         return True
 
     def disconnect(self):
         print "Disconnecting"
+        self.statehand.stateQueue.put("STANDBY")
 #        print self.state
         return False
 
@@ -430,7 +430,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.ip_le.setEnabled(False)
                 self.port_le.setEnabled(False)
         else:
-            self.connected = self.relay_callb.disconnect(self)
+            self.connected = self.relay_callb.disconnect()
             if (not self.connected):
                 self.connectButton.setText('Connect')
                 self.net_state_label.setText("Disconnected")
