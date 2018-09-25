@@ -99,6 +99,8 @@ class Main_Thread(threading.Thread):
                 print e
                 self.logger.warning('Exception in disconnecting')
                 self.logger.warning(str(e))
+                self.logger.warning('Setting STATE --> FAULT')
+                self.state = 'FAULT'
             # Now that we've stopped the service thread, reset
             # the previous state
             self.prevstate = 'STANDBY'
