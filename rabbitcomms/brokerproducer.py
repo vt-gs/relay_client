@@ -35,11 +35,15 @@ class BrokerProducer(BrokerConnector):
                                           content_type='application/json')#,
                                           #message_id=id,
                                           #correlation_id=id)
-
-        self.channel.basic_publish(exchange=self.exchange,
-                                   routing_key = self.routing_key,
-                                   body = msg,
-                                   properties = properties)
+        try:
+            self.channel.basic_publish(exchange=self.exchange,
+                                       routing_key = self.routing_key,
+                                       body = msg,
+                                       properties = properties)
+        except Exception as e:
+            print str(e)
+            self.logger.warning('Error with channel.basic_publish()')
+            self.logger.warning(str(e))
         #json.dumps(message, ensure_ascii=False),
     def publish_message(self):
         if self.closing:
