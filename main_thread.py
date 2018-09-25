@@ -44,9 +44,9 @@ class Main_Thread(threading.Thread):
         try:
             while (not self._stop.isSet()):
                 if (not self.statehand.stateQueue.empty()):
-#                    print "Not empty in main thread!"
+                    self.prevstate = self.state
                     self.state=self.statehand.stateQueue.get()
-#                    print newstate
+#                    print self.state
                 if self.state == 'BOOT':
                     self._handle_state_boot()
                 elif self.state == 'STANDBY':
@@ -87,7 +87,23 @@ class Main_Thread(threading.Thread):
             self.set_state('FAULT', 'Failed to Launch Threads')
 
     def _handle_state_standby(self):
-# Moving connected to broker to active state
+        # Handle for disconnecting, coming back from ACTIVE
+        if self.prevstate is 'ACTIVE':
+#            print "Time to unplug"
+
+            try:
+                self.service_thread.stop()
+                self.service_thread.join()
+
+            except Exception as e:
+                print e
+                self.logger.warning('Exception in disconnecting')
+                self.logger.warning(str(e))
+            # Now that we've stopped the service thread, reset
+            # the previous state
+            self.prevstate = 'STANDBY'
+
+        # Moving connected to broker to active state
         some="one"  # Just for now.
 
     def _handle_state_active(self):
@@ -96,7 +112,7 @@ class Main_Thread(threading.Thread):
         #print 'ACTIVE'
         # Setup initial connection to rabbitmq server
         if self.prevstate is 'STANDBY':
-            print "connection time!"
+#            print "connection time!"
 
             try:
                 #Initialize Server Thread
