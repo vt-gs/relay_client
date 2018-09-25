@@ -7,7 +7,7 @@ from brokerconnector import BrokerConnector
 
 class BrokerProducer(BrokerConnector):
     """BrokerProducer provides basic functionality to support the connection
-    dneeded for a typical Pika to RabbitMQ producer connection.  Individual
+    needed for a typical Pika to RabbitMQ producer connection.  Individual
     functions could be overridden if alternate or additional functionality is
     desired.  Derived classes would override the "send and/or "publish_message"
     functions.
