@@ -26,6 +26,10 @@ class state_handler():
 #########
 # TO DO: Think this can drop cfg if just using as Queue object to
 #        link between gui code and main_thread
+#
+# CLUE:  See service thread's tx_q and rx_q setup as these are
+#        called from main_thread
+#
 #########
 
     def __init__ (self, cfg):
