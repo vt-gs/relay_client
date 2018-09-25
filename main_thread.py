@@ -132,9 +132,18 @@ class Main_Thread(threading.Thread):
                 self.logger.warning('Setting STATE --> FAULT')
                 self.state = 'FAULT'
 
-            self.service_thread.tx_q.put("Well,hi,there!")
+#            self.service_thread.tx_q.put("Well,hi,there!")
             # Reflect completed change of state
             self.prevstate = self.state
+
+#            time.sleep(0.1)
+            print "Querying relays"
+            self.service_thread.tx_q.put("READ,RELAY,ALL")
+            # Old relay query code
+            #rel_state, rel_int = self.relay_thread.read_all_relays()
+            #print rel_state, rel_int
+            #time.sleep(1)
+
 
 #        else:
 #            print "what time?"
@@ -147,10 +156,6 @@ class Main_Thread(threading.Thread):
 #            print '{:s} | Relay rx_q message: {:s}'.format(self.name, str(rel_msg))
 #            self._send_service_resp(rel_msg)
 
-        #print "Querying relays"
-        #rel_state, rel_int = self.relay_thread.read_all_relays()
-        #print rel_state, rel_int
-        #time.sleep(1)
 
     def _handle_state_wx(self):
         pass
