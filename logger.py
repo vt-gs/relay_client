@@ -21,7 +21,7 @@ class MyFormatter(logging.Formatter):
 def setup_logger(log_name, level=logging.DEBUG, ts = None, log_path = None):
     l = logging.getLogger(log_name)
     if ts == None: ts = str(get_uptime())
-    log_file = "relayd_{:s}_{:s}.log".format(log_name, ts)
+    log_file = "relay_client_{:s}_{:s}.log".format(log_name, ts)
     if log_path == None: log_path = '.'
     log_path = log_path + '/' + log_file
     #log_path = os.getcwd() + '/log/' + log_file
