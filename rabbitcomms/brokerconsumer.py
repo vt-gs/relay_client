@@ -162,7 +162,7 @@ class BrokerConsumer(BrokerConnector):
             self.channel.basic_cancel(self.on_cancelok, self.consumer_tag)
 
     def on_cancelok(self, unused_frame):
-        """The broker responded with a ACK on our cancle request.  We're free
+        """The broker responded with a ACK on our cancel request.  We're free
         to close the connection and clean up.
         """
         if self.loggername is not None:
