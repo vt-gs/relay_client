@@ -104,6 +104,7 @@ class Main_Thread(threading.Thread):
             # Now that we've stopped the service thread, reset
             # the previous state
             self.prevstate = 'STANDBY'
+            self.logger.debug('Change prevstate to {:s}'.format(self.prevstate))
 
         # Moving connected to broker to active state
         some="one"  # Just for now.
