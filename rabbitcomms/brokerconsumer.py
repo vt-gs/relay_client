@@ -155,6 +155,12 @@ class BrokerConsumer(BrokerConnector):
         messages.  This will send the Basic.Cancel RPC command and makes a clean
         connection break with the broker.  We'll register a callback that will
         be called whne the cancel request is handled.
+
+        IF USING THIS METHOD TO DISCONNECT FROM RMQ SERVER, NOTE THAT THIS
+        WILL RECONNECT TO THE RMQ SERVER AFTER A DELAY OF `retry_wait`.  NOT
+        RECOMMENDED TO USE THIS METHOD TO CHANGE RMQ SERVERS
+
+
         """
         if self.channel:
             if self.loggername is not None:
