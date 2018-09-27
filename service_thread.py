@@ -31,6 +31,7 @@ class Consumer(BrokerConsumer):
     def get_connection_state(self):
         return self.connected
 
+
 class Producer(BrokerProducer):
     def __init__(self, cfg, loggername=None):
         super(Producer, self).__init__(cfg, loggername)
@@ -73,6 +74,7 @@ class Service_Thread(threading.Thread):
         #start producer
         self.produce_thread.start()
 
+
         while (not self._stop.isSet()):
             if (self.consumer.get_connection_state() and self.producer.get_connection_state()):
                 self.connected = True
@@ -89,11 +91,21 @@ class Service_Thread(threading.Thread):
 
             time.sleep(0.01) #needed to throttle
 
-        self.consumer.stop_consuming()
-        self.producer.stop_producing()
-        time.sleep(1)
         self.consumer.stop()
         self.producer.stop()
+# Not sure why sleep is needed here
+#        time.sleep(1)
+#############
+# TO DO:
+# Doesn't the consume and produce threads still need to be stopped here?
+#############
+# Maybe not as I think these should show false
+#        print self.consume_thread.is_alive()
+#        print self.produce_thread.is_alive()
+#        self.consume_thread.stop()
+#        self.consume_thread.join()
+#        self.produce_thread.stop()
+#        self.produce_thread.join()
         self.logger.warning('{:s} Terminated'.format(self.name))
         sys.exit()
 
