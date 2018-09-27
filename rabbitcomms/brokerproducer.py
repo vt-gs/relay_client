@@ -61,7 +61,7 @@ class BrokerProducer(BrokerConnector):
         """Tell the broker that we are done and would like to stop producing
         messages.  This will send the Basic.Cancel RPC command and makes a clean
         connection break with the broker.  We'll register a callback that will
-        be called whne the cancel request is handled.
+        be called when the cancel request is handled.
         """
         if self.channel:
             if self.loggername is not None:
