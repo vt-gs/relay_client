@@ -87,11 +87,11 @@ class BrokerConnector(object):
         """Called when the connection to the RabbitMQ server has been
         established.
         """
-        self.connected = True
         if self.loggername is not None:
             self.logger.debug('Connection opened')
         self.add_on_connection_close_callback()
         self.open_channel()
+        self.connected = True
 
     def add_on_connection_close_callback(self):
         """Add an "on close" callback that will be called whenever
