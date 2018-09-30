@@ -137,7 +137,13 @@ class Main_Thread(threading.Thread):
             # Reflect completed change of state
             self.prevstate = self.state
 
-#            time.sleep(0.1)
+            # Give some time for connection to start and channels
+            # get setup?  Having an issue where the channel isn't
+            # also created by the time the producer.send() call is made
+            # TO DO: maybe future iteration could get a returned True/False
+            # to confirm the transmitted message was sent.  Would allow for
+            # loops of send until true.
+            time.sleep(0.05)
             print "Querying relays"
             self.service_thread.tx_q.put("READ,RELAY,ALL")
             # Old relay query code
