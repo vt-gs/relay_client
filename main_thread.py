@@ -59,6 +59,7 @@ class Main_Thread(threading.Thread):
                     self._handle_state_fault()
                 time.sleep(0.01) #Needed to throttle CPU
 
+
         except (KeyboardInterrupt, SystemExit): #when you press ctrl+c
             print "\nCaught CTRL-C, Killing Threads..."
             self.logger.warning('Caught CTRL-C, Terminating Threads...')
@@ -152,11 +153,11 @@ class Main_Thread(threading.Thread):
             #time.sleep(1)
 
 
-#        else:
+        else:
 #            print "what time?"
-#        if (not self.service_thread.q.empty()):
-#            msg = self.service_thread.q.get()
-#            print '{:s} | Service Thread RX Message: {:s}'.format(self.name, msg)
+            if (not self.service_thread.rx_q.empty()):
+                msg = self.service_thread.rx_q.get()
+                print '{:s} | Service Thread RX Message: {:s}'.format(self.name, msg)
 #            self.relay_thread.tx_q.put(msg)
 #        if (not self.relay_thread.rx_q.empty()):
 #            rel_msg = self.relay_thread.rx_q.get()
