@@ -20,7 +20,7 @@ import service_thread
 from state_handler import *
 
 class Main_Thread(threading.Thread):
-    def __init__ (self, cfg):
+    def __init__ (self, cfg, win):
         threading.Thread.__init__(self, name = 'Main_Thread')
         self._stop      = threading.Event()
         self.cfg        = cfg
@@ -28,6 +28,9 @@ class Main_Thread(threading.Thread):
         self.log_path   = cfg['log_path']
         self.log_level  = cfg['log_level']
         self.ssid       = cfg['ssid']
+
+        # GUI object
+        self.win = win
 
         self.state  = 'BOOT' #BOOT, STANDBY, ACTIVE, WX, FAULT
         self.statehand = state_handler(cfg)
@@ -158,6 +161,12 @@ class Main_Thread(threading.Thread):
             if (not self.service_thread.rx_q.empty()):
                 msg = self.service_thread.rx_q.get()
                 print '{:s} | Service Thread RX Message: {:s}'.format(self.name, msg)
+                msg_parse = msg.split(':')[1].split(',')
+                print msg_parse
+                if 'RELAY' in msg_parse[0] and 'STATUS' in msg_parse[1]:
+                    print msg_parse[2]
+                    print "HI!"
+                    self.win.updateLED(2,True)
 #            self.relay_thread.tx_q.put(msg)
 #        if (not self.relay_thread.rx_q.empty()):
 #            rel_msg = self.relay_thread.rx_q.get()
