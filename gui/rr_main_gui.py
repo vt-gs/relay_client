@@ -25,8 +25,6 @@ class main_widget(QtGui.QWidget):
         #self.setLayout(self.grid)
 
 class relay_callback():
-
-
     def __init__(self, config):
 
         self.statehand = state_handler(config)
@@ -406,6 +404,9 @@ class MainWindow(QtGui.QMainWindow):
         port = self.port_le.text()
         self.service_callback.set_port(port)
 
+    def updateLED(self,id,state):
+        print "Let's update an LED?"
+
 
 
     def set_service_callback(self, cb):
@@ -450,7 +451,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def connectSignals(self):
 #####
-# TO DO: Get the rest of these working
+# TO DO: Get the rest of these working or figure out which ones still matter
 #####
 
 #        self.resetButton.clicked.connect(self.resetButtonEvent)
