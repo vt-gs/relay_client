@@ -405,10 +405,23 @@ class MainWindow(QtGui.QMainWindow):
         self.service_callback.set_port(port)
 
     def updateLED(self,id,state):
-        print "Let's update an LED?"
-        print id
-        print state
-        self.leds[2].set_state(state)
+#        print "Let's update an LED?"
+#        print id
+#        print state
+
+# Moved this to main thread to keep this to update a
+# single LED instead of inputting the whole state of
+# LEDs/relays
+#        id = int(id, 16)
+#        binid = format(id, 'b').zfill(8)
+#        revbinid = binid[::-1]
+#        print revbinid
+#        for i in range(len(revbinid)):
+#            print i
+#            print binid[i]
+#            print revbinid[i]
+
+        self.leds[id].set_state(state)
 
 
     def set_service_callback(self, cb):
