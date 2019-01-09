@@ -230,8 +230,8 @@ class MainWindow(QtGui.QMainWindow):
         hbox_rx.addWidget(reg_lbl_rx)
         hbox_rx.addWidget(self.rel_reg_lbl_rx)
 
-        self.read_all_btn = QtGui.QPushButton("Read All")
-        hbox_rx.addWidget(self.read_all_btn)
+        self.readAllButton = QtGui.QPushButton("Read All")
+        hbox_rx.addWidget(self.readAllButton)
 
         self.rx_reg_fr.setLayout(hbox_rx)
 
@@ -457,6 +457,11 @@ class MainWindow(QtGui.QMainWindow):
                 self.ip_le.setEnabled(True)
                 self.port_le.setEnabled(True)
 
+    def readAllButtonEvent(self):
+        print "Read all buttoned"
+        self.service_thread.tx_q.put("READ,RELAY,ALL")
+
+
     def darken(self):
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Background,QtCore.Qt.black)
@@ -471,6 +476,7 @@ class MainWindow(QtGui.QMainWindow):
 
 #        self.resetButton.clicked.connect(self.resetButtonEvent)
         self.connectButton.clicked.connect(self.connectButtonEvent)
+        self.readAllButton.clicked.connect(self.readAllButtonEvent)
         #self.adc_auto_cb.stateChanged.connect(self.catchADCAutoEvent)
 #        self.readStatusButton.clicked.connect(self.readStatusButtonEvent)
 #        self.readRelayButton.clicked.connect(self.readRelayButtonEvent)
