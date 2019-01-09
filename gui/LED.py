@@ -53,8 +53,10 @@ class LED(QtGui.QLabel):
     def set_state(self, state):
         self.state = state
         if state:
+            print "Setting to true"
             self.setPixmap(self.pm_on)
         else:
+            print "Setting to false"
             self.setPixmap(self.pm_off)
 
 
