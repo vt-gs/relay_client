@@ -164,9 +164,25 @@ class Main_Thread(threading.Thread):
                 msg_parse = msg.split(':')[1].split(',')
                 print msg_parse
                 if 'RELAY' in msg_parse[0] and 'STATUS' in msg_parse[1]:
-                    print msg_parse[2]
-                    print "HI!"
-                    self.win.updateLED(2,True)
+#                    print msg_parse[2]
+#                    print "HI!"
+                    LEDint = int(msg_parse[2], 16)
+#                    print LEDint
+                    LEDbin = format(LEDint, 'b').zfill(8)
+#                    print LEDbin
+                    LEDrevbin = LEDbin[::-1]
+#                    print LEDrevbin
+                    for i in range(len(LEDrevbin)):
+#                        print i
+#                        print LEDrevbin[i]
+                        if LEDrevbin[i] is "0":
+#                            print "False"
+                            self.win.updateLED(i, False)
+                        else:
+#                            print "True"
+                            self.win.updateLED(i, True)
+
+
 #            self.relay_thread.tx_q.put(msg)
 #        if (not self.relay_thread.rx_q.empty()):
 #            rel_msg = self.relay_thread.rx_q.get()
