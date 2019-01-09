@@ -406,7 +406,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def updateLED(self,id,state):
         print "Let's update an LED?"
-
+        print id
+        print state
+        self.leds[2].set_state(state)
 
 
     def set_service_callback(self, cb):
