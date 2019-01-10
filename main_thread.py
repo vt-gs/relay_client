@@ -182,6 +182,12 @@ class Main_Thread(threading.Thread):
 #                            print "True"
                             self.win.updateLED(i, True)
 
+            elif (not self.statehand.msgQueue.empty()):
+                msg = self.statehand.msgQueue.get()
+#                print "found a message to send!"
+#                print msg
+                self.service_thread.tx_q.put(msg)
+
 
 #            self.relay_thread.tx_q.put(msg)
 #        if (not self.relay_thread.rx_q.empty()):
