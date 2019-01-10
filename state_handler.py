@@ -22,6 +22,8 @@ import service_thread
 class state_handler():
 
     stateQueue = Queue()
+    msgQueue = Queue()
+
 
 #########
 # TO DO: Think this can drop cfg if just using as Queue object to
