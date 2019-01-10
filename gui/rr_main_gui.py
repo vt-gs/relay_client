@@ -14,7 +14,6 @@ from relay_table import *
 from state_handler import *
 
 
-
 class main_widget(QtGui.QWidget):
     def __init__(self):
         super(main_widget, self).__init__()
@@ -41,6 +40,11 @@ class relay_callback():
         self.statehand.stateQueue.put("STANDBY")
 #        print self.state
         return False
+
+    def send_msg(self, msg):
+        print "Sending msg in relay_callback"
+        self.statehand.msgQueue.put(msg)
+
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -430,6 +434,9 @@ class MainWindow(QtGui.QMainWindow):
         The 'Service Class' is expected to be a different thread handling network comms.
         The 'Service Class' in this case connects to the RMQ Broker.
         """
+# not sure how this is supposed to work, but would be useful for buttons to send messages
+# directly to service_thread rather than back up to the main_thread through the
+# state_handler
         self.service_callback = cb
 
     def connectButtonEvent(self):
@@ -459,7 +466,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def readAllButtonEvent(self):
         print "Read all buttoned"
-        self.service_thread.tx_q.put("READ,RELAY,ALL")
+        self.relay_callb.send_msg("READ,RELAY,ALL")
+#        self.service_callback.tx_q.put("READ,RELAY,ALL")
+#        self.service_thread.tx_q.put("READ,RELAY,ALL")
 
 
     def darken(self):
