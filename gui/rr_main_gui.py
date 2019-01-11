@@ -210,8 +210,8 @@ class MainWindow(QtGui.QMainWindow):
         hbox_tx.addWidget(reg_lbl_tx)
         hbox_tx.addWidget(self.rel_reg_lbl_tx)
 
-        self.write_all_btn = QtGui.QPushButton("Write All")
-        hbox_tx.addWidget(self.write_all_btn)
+        self.writeAllButton = QtGui.QPushButton("Write All")
+        hbox_tx.addWidget(self.writeAllButton)
 
         self.tx_reg_fr.setLayout(hbox_tx)
 
@@ -468,11 +468,21 @@ class MainWindow(QtGui.QMainWindow):
                 self.port_le.setEnabled(True)
 
     def readAllButtonEvent(self):
-        print "Read all buttoned"
+#        print "Read all buttoned"
         self.relay_callb.send_msg("READ,RELAY,ALL")
 #        self.service_callback.tx_q.put("READ,RELAY,ALL")
 #        self.service_thread.tx_q.put("READ,RELAY,ALL")
 
+    def writeAllButtonEvent(self):
+        print "Write all buttoned"
+#        hex_str = "0x{:02X}".format(self.tx_reg)
+        print self.tx_reg
+#        hex_val = int(str(self.tx_reg), 16)
+        hex_val = "%0.2X" % self.tx_reg
+        hex_val = hex_val.lower()
+        print hex_val
+        print type(hex_val)
+        self.relay_callb.send_msg("WRITE,RELAY,"+hex_val)
 
     def darken(self):
         palette = QtGui.QPalette()
@@ -489,6 +499,7 @@ class MainWindow(QtGui.QMainWindow):
 #        self.resetButton.clicked.connect(self.resetButtonEvent)
         self.connectButton.clicked.connect(self.connectButtonEvent)
         self.readAllButton.clicked.connect(self.readAllButtonEvent)
+        self.writeAllButton.clicked.connect(self.writeAllButtonEvent)
         #self.adc_auto_cb.stateChanged.connect(self.catchADCAutoEvent)
 #        self.readStatusButton.clicked.connect(self.readStatusButtonEvent)
 #        self.readRelayButton.clicked.connect(self.readRelayButtonEvent)
