@@ -427,6 +427,9 @@ class MainWindow(QtGui.QMainWindow):
 
         self.leds[id].set_state(state)
 
+    def update_RXRegFrame(self,hex_value):
+        print "updating RXRegFrame?"
+        self.rel_reg_lbl_rx.setText(hex_value)
 
     def set_service_callback(self, cb):
         """

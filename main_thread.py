@@ -164,7 +164,7 @@ class Main_Thread(threading.Thread):
                 msg_parse = msg.split(':')[1].split(',')
                 print msg_parse
                 if 'RELAY' in msg_parse[0] and 'STATUS' in msg_parse[1]:
-#                    print msg_parse[2]
+                    print msg_parse[2]
 #                    print "HI!"
                     LEDint = int(msg_parse[2], 16)
 #                    print LEDint
@@ -181,6 +181,9 @@ class Main_Thread(threading.Thread):
                         else:
 #                            print "True"
                             self.win.updateLED(i, True)
+
+                    hex_notation = "0x"+msg_parse[2]
+                    self.win.update_RXRegFrame(hex_notation)
 
             elif (not self.statehand.msgQueue.empty()):
                 msg = self.statehand.msgQueue.get()
