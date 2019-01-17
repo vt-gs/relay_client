@@ -178,9 +178,13 @@ class Main_Thread(threading.Thread):
                         if LEDrevbin[i] is "0":
 #                            print "False"
                             self.win.updateLED(i, False)
+                            self.win.update_relay_cb(i, False)
+                            self.win.update_relay_rb(i, False)
                         else:
 #                            print "True"
                             self.win.updateLED(i, True)
+                            self.win.update_relay_cb(i, True)
+                            self.win.update_relay_rb(i, True)
 
                     hex_notation = "0x"+msg_parse[2]
                     self.win.update_RXRegFrame(hex_notation)

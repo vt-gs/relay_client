@@ -428,6 +428,24 @@ class MainWindow(QtGui.QMainWindow):
         self.leds[id].set_state(state)
         self.table_led[id].set_state(state)
 
+    def update_relay_cb(self,id,state):
+        '''
+        Update to checkbox (cb) in the relay
+        table.
+        '''
+        self.relay_cb[id].setChecked(state)
+
+    def update_relay_rb(self,id,state):
+        '''
+        Update to radio button (rb) in the relay
+        table.
+        '''
+        if state is True:
+            self.relay_rb_on[id].setChecked(True)
+            self.relay_rb_off[id].setChecked(False)
+        else:
+            self.relay_rb_on[id].setChecked(False)
+            self.relay_rb_off[id].setChecked(True)
 
     def update_RXRegFrame(self,hex_value):
 #        print "updating RXRegFrame?"
