@@ -184,6 +184,8 @@ class Main_Thread(threading.Thread):
 
                     hex_notation = "0x"+msg_parse[2]
                     self.win.update_RXRegFrame(hex_notation)
+                    self.win.update_TXRegFrame(hex_notation)
+
 
             elif (not self.statehand.msgQueue.empty()):
                 msg = self.statehand.msgQueue.get()
