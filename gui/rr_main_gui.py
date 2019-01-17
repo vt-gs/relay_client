@@ -426,10 +426,23 @@ class MainWindow(QtGui.QMainWindow):
 #            print revbinid[i]
 
         self.leds[id].set_state(state)
+        self.table_led[id].set_state(state)
+
 
     def update_RXRegFrame(self,hex_value):
-        print "updating RXRegFrame?"
+#        print "updating RXRegFrame?"
         self.rel_reg_lbl_rx.setText(hex_value)
+
+    def update_TXRegFrame(self,hex_value):
+        '''
+        There's a few ways the TX Register Frame is updated.
+        One already covered is when the checkbox (cb) is
+        clicked with cbClicked().  This is called (for now)
+        from the main thread whenever a read all is
+        returned from the relay_daemon.
+        '''
+#        print "updating TXRegFrame"
+        self.rel_reg_lbl_tx.setText(hex_value)
 
     def set_service_callback(self, cb):
         """
