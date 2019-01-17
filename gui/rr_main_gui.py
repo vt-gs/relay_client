@@ -8,6 +8,7 @@ import numpy as np
 from datetime import datetime as date
 import sys
 from Queue import Queue
+from functools import partial
 
 from LED import *
 from relay_table import *
@@ -142,6 +143,9 @@ class MainWindow(QtGui.QMainWindow):
         self.relay_table=Relay_Table(self.main_window)
         self.cb_group = QtGui.QButtonGroup()
         self.cb_group.setExclusive(False)
+        self.rb_group = QtGui.QButtonGroup()
+        self.rb_group.setExclusive(False)
+# Hardcoded place that assumes 8 channel relay
         for i in range(8):
             #cb = QtGui.QCheckBox("Relay " + str(i))
             cb = QtGui.QCheckBox("{:03d}".format(pow(2,i)))
@@ -158,6 +162,9 @@ class MainWindow(QtGui.QMainWindow):
                                                  background-color:rgb(0,0,0); \
                                                  color:rgb(255,255,255) ; }")
             rb_off.setChecked(True)
+            self.rb_group.addButton(rb_on, i)
+# Hardcoded place that assumes 8 channel relay
+            self.rb_group.addButton(rb_off, i+8)
 
             self.relay_rb_on.append(rb_on)
             self.relay_rb_off.append(rb_off)
@@ -171,8 +178,12 @@ class MainWindow(QtGui.QMainWindow):
                                         self.relay_rb_off[i] )
 
             self.relay_cb[i].clicked.connect(self.table_led[i].set_state)
+# Rely on immediate write and response to update LEDs
+#            self.relay_rb_on[i].clicked.connect(self.table_led[i].set_state)
+#            self.relay_rb_off[i].clicked.connect(self.table_led[i].set_state)
 
         self.cb_group.buttonClicked.connect(self.cbClicked)
+        self.rb_group.buttonClicked.connect(self.rbClicked)
 
         grid = QtGui.QGridLayout()
         grid.addWidget(self.relay_table,0,0,2,2)
@@ -190,6 +201,17 @@ class MainWindow(QtGui.QMainWindow):
         #hex_str = "{:d}\n(0x{:02X})".format(self.tx_reg, self.tx_reg)
         hex_str = "0x{:02X}".format(self.tx_reg)
         self.rel_reg_lbl_tx.setText(hex_str)
+
+    def rbClicked(self, id):
+        id_num = self.rb_group.id(id)
+        print id_num
+        if id_num >= 8:
+#            print "Off"
+            id_num = id_num-8
+            self.relay_rb_on[id_num].setChecked(False)
+        else:
+#            print "On"
+            self.relay_rb_off[id_num].setChecked(False)
 
     def initTXRegFrame(self):
         vbox = QtGui.QVBoxLayout()
