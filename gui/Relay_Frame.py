@@ -173,13 +173,13 @@ class Relay_Frame(QtGui.QFrame):
         self.buttonClicked(False)
 
     def buttonClicked(self, btn_id):
-        if btn_id: #ON
+        if btn_id: # ON
             #print "on btn clicked"
             self.on_btn.setEnabled(False)
             self.off_btn.setEnabled(True)
             self.off_btn.setChecked(False)
             self.state = True
-        else:#OFF
+        else: # OFF
             #print "off btn clicked"
             self.on_btn.setEnabled(True)
             self.off_btn.setEnabled(False)
