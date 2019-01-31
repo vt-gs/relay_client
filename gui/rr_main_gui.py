@@ -73,6 +73,7 @@ class MainWindow(QtGui.QMainWindow):
         self.leds           = []
         self.table_led      = []
 
+        # Running decimal number of the tx_register value
         self.tx_reg = 0
 
         #----Keep these function calls----
@@ -194,24 +195,50 @@ class MainWindow(QtGui.QMainWindow):
 
     def cbClicked(self,id):
         id_num = self.cb_group.id(id)
-        self.tx_reg = 0
-        for cb in self.cb_group.buttons():
-            if cb.isChecked():
-                self.tx_reg += pow(2,self.cb_group.id(cb))
+#        print id_num
+#        self.tx_reg = 0
+#        for cb in self.cb_group.buttons():
+#            if cb.isChecked():
+#                self.tx_reg += pow(2,self.cb_group.id(cb))
+#        print self.cb_group.buttons()
+        if self.cb_group.buttons()[id_num].isChecked():
+            self.tx_reg += pow(2, id_num)
+        else:
+            self.tx_reg -= pow(2, id_num)
+#        print self.tx_reg
+#        print hex(self.tx_reg)
         #hex_str = "{:d}\n(0x{:02X})".format(self.tx_reg, self.tx_reg)
-        hex_str = "0x{:02X}".format(self.tx_reg)
-        self.rel_reg_lbl_tx.setText(hex_str)
+#        hex_str = "{:02X}".format(self.tx_reg)
+        self.update_TXRegFrame()
+#        self.rel_reg_lbl_tx.setText(hex_str)
 
     def rbClicked(self, id):
         id_num = self.rb_group.id(id)
         print id_num
-        if id_num >= 8:
-#            print "Off"
+        if id_num >= 8:  # OFF
             id_num = id_num-8
+            # "unclick" the on button first
             self.relay_rb_on[id_num].setChecked(False)
-        else:
-#            print "On"
+            self.tx_reg -= pow(2, id_num)
+            self.update_TXRegFrame()
+            # Now lets do the immediate writing to the relay
+            hex_val = "%0.2X" % self.tx_reg
+            hex_val = hex_val.lower()
+            self.relay_callb.send_msg("WRITE,RELAY,"+hex_val)
+        else:   # ON
+            # "unclick" the off button first
             self.relay_rb_off[id_num].setChecked(False)
+            print id_num
+#            self.tx_reg = 0
+            print self.tx_reg
+            self.tx_reg += pow(2, id_num)
+#            hex_str = "{:02X}".format(self.tx_reg)
+#            self.rel_reg_lbl_tx.setText(hex_str)
+            self.update_TXRegFrame()
+            # Now lets do the immediate writing to the relay
+            hex_val = "%0.2X" % self.tx_reg
+            hex_val = hex_val.lower()
+            self.relay_callb.send_msg("WRITE,RELAY,"+hex_val)
 
     def initTXRegFrame(self):
         vbox = QtGui.QVBoxLayout()
@@ -473,16 +500,24 @@ class MainWindow(QtGui.QMainWindow):
 #        print "updating RXRegFrame?"
         self.rel_reg_lbl_rx.setText(hex_value)
 
-    def update_TXRegFrame(self,hex_value):
+    def update_TXRegFrame(self,hex_value=None):
         '''
         There's a few ways the TX Register Frame is updated.
         One already covered is when the checkbox (cb) is
         clicked with cbClicked().  This is called (for now)
         from the main thread whenever a read all is
         returned from the relay_daemon.
+
+        hex_value : str [Optional]
+            string of the hex value without the 0x
+
         '''
 #        print "updating TXRegFrame"
-        self.rel_reg_lbl_tx.setText(hex_value)
+        # Update the tx_reg value as well
+        if hex_value is not None:
+            self.tx_reg = int(hex_value, 16)
+        hex_str = "0x{:02X}".format(self.tx_reg)
+        self.rel_reg_lbl_tx.setText(hex_str)
 
     def set_service_callback(self, cb):
         """
@@ -527,14 +562,14 @@ class MainWindow(QtGui.QMainWindow):
 #        self.service_thread.tx_q.put("READ,RELAY,ALL")
 
     def writeAllButtonEvent(self):
-        print "Write all buttoned"
+#        print "Write all buttoned"
 #        hex_str = "0x{:02X}".format(self.tx_reg)
-        print self.tx_reg
+#        print self.tx_reg
 #        hex_val = int(str(self.tx_reg), 16)
         hex_val = "%0.2X" % self.tx_reg
         hex_val = hex_val.lower()
-        print hex_val
-        print type(hex_val)
+#        print hex_val
+#        print type(hex_val)
         self.relay_callb.send_msg("WRITE,RELAY,"+hex_val)
 
     def darken(self):
