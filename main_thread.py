@@ -186,9 +186,14 @@ class Main_Thread(threading.Thread):
                             self.win.update_relay_cb(i, True)
                             self.win.update_relay_rb(i, True)
 
+                    # Maybe a to do, but could modify the tx_reg value
+                    # directly from this thread and wouldn't have to
+                    # pass any value into _update_TXRegFrame
+#                    self.win.tx_reg = int(msg_parse[2], 16)
+#                    print self.win.tx_reg
+                    self.win.update_TXRegFrame(msg_parse[2])
                     hex_notation = "0x"+msg_parse[2]
                     self.win.update_RXRegFrame(hex_notation)
-                    self.win.update_TXRegFrame(hex_notation)
 
 
             elif (not self.statehand.msgQueue.empty()):
