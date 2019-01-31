@@ -162,10 +162,10 @@ class Main_Thread(threading.Thread):
                 msg = self.service_thread.rx_q.get()
                 print '{:s} | Service Thread RX Message: {:s}'.format(self.name, msg)
                 msg_parse = msg.split(':')[1].split(',')
-                print msg_parse
+#                print msg_parse
                 if 'RELAY' in msg_parse[0] and 'STATUS' in msg_parse[1]:
-                    print msg_parse[2]
-#                    print "HI!"
+#                    print msg_parse[2]
+#                    print "RELAY and STATUS"
                     LEDint = int(msg_parse[2], 16)
 #                    print LEDint
                     LEDbin = format(LEDint, 'b').zfill(8)
