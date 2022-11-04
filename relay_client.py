@@ -67,14 +67,18 @@ def main():
     cfg['startup_ts'] = startup_ts
     #print cfg
 
-    #main_thread = Main_Thread(cfg)
-    #main_thread.daemon = True
-    #main_thread.run()
-
     app = QtGui.QApplication(sys.argv)
     win = rr_main_gui.MainWindow(cfg)
     #win.setCallback(relay)
     win.show()
+
+    # Lets put main thread startup after the gui window
+    # to pass the gui into the main thread to enable
+    # access from main thread to gui
+    main_thread = Main_Thread(cfg,win)
+    main_thread.daemon = True
+    main_thread.start() # Non-blocking thread start
+
     #server_thread.set_gui_access(ex)
     sys.exit(app.exec_())
     sys.exit()

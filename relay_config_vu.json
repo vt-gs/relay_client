@@ -1,6 +1,6 @@
 {
     "ssid":"VU",
-    "log_path":"/log/relay_client",
+    "log_path":"/home/ksterne/log/relay_client",
     "log_level":"DEBUG",
     "broker":{
         "ip":"0.0.0.0",

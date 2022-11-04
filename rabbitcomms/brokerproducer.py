@@ -7,7 +7,7 @@ from brokerconnector import BrokerConnector
 
 class BrokerProducer(BrokerConnector):
     """BrokerProducer provides basic functionality to support the connection
-    dneeded for a typical Pika to RabbitMQ producer connection.  Individual
+    needed for a typical Pika to RabbitMQ producer connection.  Individual
     functions could be overridden if alternate or additional functionality is
     desired.  Derived classes would override the "send and/or "publish_message"
     functions.
@@ -35,11 +35,15 @@ class BrokerProducer(BrokerConnector):
                                           content_type='application/json')#,
                                           #message_id=id,
                                           #correlation_id=id)
-
-        self.channel.basic_publish(exchange=self.exchange,
-                                   routing_key = self.routing_key,
-                                   body = msg,
-                                   properties = properties)
+        try:
+            self.channel.basic_publish(exchange=self.exchange,
+                                       routing_key = self.routing_key,
+                                       body = msg,
+                                       properties = properties)
+        except Exception as e:
+            print str(e)
+            self.logger.warning('Error with channel.basic_publish()')
+            self.logger.warning(str(e))
         #json.dumps(message, ensure_ascii=False),
     def publish_message(self):
         if self.closing:
@@ -57,7 +61,13 @@ class BrokerProducer(BrokerConnector):
         """Tell the broker that we are done and would like to stop producing
         messages.  This will send the Basic.Cancel RPC command and makes a clean
         connection break with the broker.  We'll register a callback that will
-        be called whne the cancel request is handled.
+        be called when the cancel request is handled.
+
+        IF USING THIS METHOD TO DISCONNECT FROM RMQ SERVER, NOTE THAT THIS
+        WILL RECONNECT TO THE RMQ SERVER AFTER A DELAY OF `retry_wait`.  NOT
+        RECOMMENDED TO USE THIS METHOD TO CHANGE RMQ SERVERS
+
+
         """
         if self.channel:
             if self.loggername is not None:
